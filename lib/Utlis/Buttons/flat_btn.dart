@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class FlatBtn extends StatelessWidget {
+class FlatBtn extends StatefulWidget {
   const FlatBtn({
     super.key,
     required this.onTap,
@@ -11,14 +11,26 @@ class FlatBtn extends StatelessWidget {
   final String text;
 
   @override
+  State<FlatBtn> createState() => _FlatBtnState();
+}
+
+class _FlatBtnState extends State<FlatBtn> {
+  Color color = const Color.fromARGB(255, 255, 208, 0);
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        setState(() {
+          color = Colors.white;
+        });
+        widget.onTap();
+      },
       child: AnimatedContainer(
-        duration: const Duration(seconds: 1),
+        duration: const Duration(milliseconds: 100),
         padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 12),
         decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 255, 208, 0),
+            color: color,
             border: Border.all(
               width: 2,
               color: Colors.black,
@@ -31,7 +43,7 @@ class FlatBtn extends StatelessWidget {
               )
             ]),
         child: Text(
-          text,
+          widget.text,
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,

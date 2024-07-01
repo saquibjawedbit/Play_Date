@@ -52,7 +52,7 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
 
     userController.createUser(imageUrls);
     Get.offAll(
-      () => const HomeScreen(),
+      () => HomeScreen(),
       transition: Transition.fade,
       duration: const Duration(seconds: 1),
     );

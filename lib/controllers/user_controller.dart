@@ -21,7 +21,6 @@ class UserController extends GetxController {
     name = newName.capitalizeFirst!.removeAllWhitespace;
     try {
       dateTime = DateTime(int.parse(year), int.parse(month), int.parse(day));
-      print(dateTime);
       return true;
     } catch (e) {
       return false;

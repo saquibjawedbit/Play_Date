@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:play_dates/Screens/quiz_screen.dart';
-
 import '../Paints/r_p_s_custom_painter.dart';
 
 class TriangularConatiner extends StatelessWidget {

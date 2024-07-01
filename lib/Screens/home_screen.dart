@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
+import 'package:play_dates/controllers/quiz_controller.dart';
 
 import '../Utlis/Buttons/flat_btn.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  HomeScreen({super.key});
+
+  final QuizController quizController = Get.put(QuizController());
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +47,7 @@ class HomeScreen extends StatelessWidget {
                   height: 40,
                 ),
                 FlatBtn(
-                  onTap: () {},
+                  onTap: quizController.nextPage,
                   text: "Play Now",
                 )
               ],
@@ -132,61 +136,6 @@ class InfoBox extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ShadowText extends StatelessWidget {
-  final String data;
-  final TextStyle style;
-  final TextAlign textAlign;
-  final TextDirection textDirection;
-  final bool softWrap;
-  final TextOverflow overflow;
-  final double textScaleFactor;
-  final int maxLines;
-
-  const ShadowText(
-    this.data, {
-    super.key,
-    required this.style,
-    required this.textAlign,
-    required this.textDirection,
-    required this.softWrap,
-    required this.overflow,
-    required this.textScaleFactor,
-    required this.maxLines,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRect(
-      child: Stack(
-        children: [
-          Positioned(
-            top: 3.0,
-            left: 3.0,
-            child: Text(
-              data,
-              style: style.copyWith(color: Colors.black.withOpacity(1)),
-              textAlign: textAlign,
-              textDirection: textDirection,
-              softWrap: softWrap,
-              overflow: overflow,
-              maxLines: maxLines,
-            ),
-          ),
-          Text(
-            data,
-            style: style,
-            textAlign: textAlign,
-            textDirection: textDirection,
-            softWrap: softWrap,
-            overflow: overflow,
-            maxLines: maxLines,
           ),
         ],
       ),

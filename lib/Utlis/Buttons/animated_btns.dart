@@ -1,17 +1,20 @@
 import 'dart:collection';
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:play_dates/Screens/home_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
+import 'package:play_dates/controllers/quiz_controller.dart';
 
 class AnimatedBtns extends StatefulWidget {
   const AnimatedBtns({
     super.key,
     required this.color,
     required this.text,
+    required this.option,
   });
 
+  final int option;
   final Color color;
   final String text;
 
@@ -22,11 +25,15 @@ class AnimatedBtns extends StatefulWidget {
 class _AnimatedBtnsState extends State<AnimatedBtns> {
   Color? color;
 
+  final QuizController controller = Get.find();
+
   void onTap(context) {
     setState(() {
       color = Colors.red;
     });
-    showDialog(context: context, builder: (context) => const CustomDialogBox());
+    controller.submitAns(widget.option);
+    controller.nextPage();
+    //showDialog(context: context, builder: (context) => const CustomDialogBox());
   }
 
   @override

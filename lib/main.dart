@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:play_dates/Screens/home_screen.dart';
 import 'package:play_dates/Screens/Onboarding/name_screen.dart';
 import 'package:play_dates/Screens/Onboarding/welcome_screen.dart';
-import 'package:play_dates/Screens/leaderboard_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/Utlis/repo/db_manager.dart';
 import 'package:play_dates/firebase_options.dart';
@@ -73,7 +72,7 @@ class MyApp extends StatelessWidget {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasData && snapshot.data?.docs.length == 1) {
-                  return const HomeScreen();
+                  return HomeScreen();
                 } else {
                   return NameScreen();
                 }

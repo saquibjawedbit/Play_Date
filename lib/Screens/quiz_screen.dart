@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
+import 'package:play_dates/Utlis/Models/quiz_model.dart';
 import '../Utlis/Buttons/animated_btns.dart';
 import '../Utlis/Widgets/time_bar.dart';
 import '../Views/quiz_bar.dart';
 
 class QuizScreen extends StatelessWidget {
-  const QuizScreen({super.key});
+  const QuizScreen({
+    super.key,
+    required this.questionData,
+  });
+
+  final QuizModel questionData;
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +25,12 @@ class QuizScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
               child: Column(
                 children: [
-                  const TimeBar(),
+                  TimeBar(),
                   const SizedBox(
                     height: 30,
                   ),
                   Text(
-                    "You have a free afternoon. Where do you hangout?",
+                    questionData.question,
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium!
@@ -33,30 +39,34 @@ class QuizScreen extends StatelessWidget {
                   const SizedBox(
                     height: 30,
                   ),
-                  const AnimatedBtns(
-                    color: Color.fromARGB(255, 255, 160, 122),
-                    text: "Option 1",
+                  AnimatedBtns(
+                    option: 1,
+                    color: const Color.fromARGB(255, 255, 160, 122),
+                    text: questionData.option1,
                   ),
                   const SizedBox(
                     height: 20,
                   ),
-                  const AnimatedBtns(
-                    color: Color.fromARGB(255, 255, 178, 239),
-                    text: "Option 2",
+                  AnimatedBtns(
+                    option: 2,
+                    color: const Color.fromARGB(255, 255, 178, 239),
+                    text: questionData.option2,
                   ),
                   const SizedBox(
                     height: 20,
                   ),
-                  const AnimatedBtns(
-                    color: Color.fromARGB(255, 253, 253, 150),
-                    text: "Option 3",
+                  AnimatedBtns(
+                    option: 3,
+                    color: const Color.fromARGB(255, 253, 253, 150),
+                    text: questionData.option3,
                   ),
                   const SizedBox(
                     height: 20,
                   ),
-                  const AnimatedBtns(
-                    color: Color.fromARGB(255, 127, 188, 140),
-                    text: "Option 4",
+                  AnimatedBtns(
+                    option: 4,
+                    color: const Color.fromARGB(255, 127, 188, 140),
+                    text: questionData.option4,
                   ),
                 ],
               ),

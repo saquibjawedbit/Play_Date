@@ -7,7 +7,7 @@ class RPSCustomPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    Paint paint_fill_1 = Paint()
+    Paint paintFill = Paint()
       ..color = const Color.fromARGB(255, 0, 0, 0)
       ..style = PaintingStyle.fill
       ..strokeWidth = size.width * 0.00
@@ -28,11 +28,11 @@ class RPSCustomPainter extends CustomPainter {
         size.width * 0.500 + offset.dx, size.height * 0.250 + offset.dy);
     path_1.close();
 
-    canvas.drawPath(path_1, paint_fill_1);
+    canvas.drawPath(path_1, paintFill);
 
     // Layer 1
 
-    Paint paint_fill_0 = Paint()
+    Paint paintFill0 = Paint()
       ..color = color
       ..style = PaintingStyle.fill
       ..strokeWidth = size.width * 0.00
@@ -47,7 +47,7 @@ class RPSCustomPainter extends CustomPainter {
     path_0.lineTo(size.width * 0.500, size.height * 0.250);
     path_0.close();
 
-    canvas.drawPath(path_0, paint_fill_0);
+    canvas.drawPath(path_0, paintFill0);
 
     // Layer 1
 

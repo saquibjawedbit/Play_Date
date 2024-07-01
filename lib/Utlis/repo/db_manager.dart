@@ -17,10 +17,6 @@ class DbManager {
                 categoryData.data,
               ))
           .toList();
-      print("fetched");
-      for (int i = 0; i < categories.length; i++) {
-        print(categories[i].email);
-      }
       return categories;
     } catch (err) {
       throw Exception('Failed to fetch the categories $err');

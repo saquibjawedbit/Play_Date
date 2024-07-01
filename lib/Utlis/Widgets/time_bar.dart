@@ -1,31 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
+import 'package:play_dates/controllers/quiz_controller.dart';
 
 class TimeBar extends StatelessWidget {
-  const TimeBar({
+  TimeBar({
     super.key,
   });
 
+  final QuizController controller = Get.find();
+
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.info_outline_rounded,
               color: sbColor,
             ),
-            SizedBox(
+            const SizedBox(
               width: 10,
             ),
-            Text(
-              "01/04",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
+            Obx(
+              () => Text(
+                controller.question.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
               ),
             ),
           ],
@@ -33,17 +39,17 @@ class TimeBar extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              "00:00:05",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
-            SizedBox(
+            Obx(() => Text(
+                  controller.time.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                )),
+            const SizedBox(
               width: 10,
             ),
-            Icon(
+            const Icon(
               Icons.access_time,
               color: sbColor,
             ),
