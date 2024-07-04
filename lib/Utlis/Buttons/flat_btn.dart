@@ -1,36 +1,35 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FlatBtn extends StatefulWidget {
   const FlatBtn({
     super.key,
     required this.onTap,
     required this.text,
+    this.color,
   });
 
   final Function() onTap;
   final String text;
+  final Color? color;
 
   @override
   State<FlatBtn> createState() => _FlatBtnState();
 }
 
 class _FlatBtnState extends State<FlatBtn> {
-  Color color = const Color.fromARGB(255, 255, 208, 0);
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          color = Colors.white;
-        });
-        widget.onTap();
-      },
+      onTap: widget.onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
-        padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 12),
+        padding: EdgeInsets.symmetric(
+            horizontal: min(44, 44.w), vertical: min(12.h, 12)),
         decoration: BoxDecoration(
-            color: color,
+            color: widget.color ?? const Color.fromARGB(255, 255, 208, 0),
             border: Border.all(
               width: 2,
               color: Colors.black,
@@ -44,10 +43,10 @@ class _FlatBtnState extends State<FlatBtn> {
             ]),
         child: Text(
           widget.text,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 32,
+            fontSize: min(32, 32.sp),
           ),
         ),
       ),

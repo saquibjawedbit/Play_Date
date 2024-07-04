@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/Utlis/Widgets/indicator_linear.dart';
 
@@ -7,32 +10,86 @@ import '../Utlis/Widgets/triangular_conatiner.dart';
 class QuizBar extends StatelessWidget {
   const QuizBar({
     super.key,
+    required this.percent,
+    required this.round,
   });
+
+  final double percent;
+  final int round;
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       color: sandColor,
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      alignment: Alignment.center,
+      padding: EdgeInsets.symmetric(vertical: min(20, 20.h)),
       child: Stack(
+        alignment: AlignmentDirectional.center,
         children: [
-          const Positioned(
-            top: 10,
+          Positioned(
+            left: 50,
             child: IndicatorLinear(
-              percent: 0.4,
+              percent: round == 1 ? percent : 1,
               backgroundColor: Colors.black,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              animation: false,
+              padding: const EdgeInsets.only(
+                // right: 40,
+                top: 32,
+                bottom: 32,
+                left: 20,
+              ),
+              width: min(70, 70.w),
+            ),
+          ),
+          Positioned(
+            left: 140,
+            child: IndicatorLinear(
+              percent: round <= 2 ? (round == 2 ? percent : 0) : 1,
+              backgroundColor: Colors.black,
+              animation: false,
+              padding: const EdgeInsets.only(
+                // right: 40,
+                top: 32,
+                bottom: 32,
+                left: 20,
+              ),
+              width: min(70, 70.w),
+            ),
+          ),
+          Positioned(
+            left: 240,
+            child: IndicatorLinear(
+              percent: round <= 3 ? (round == 3 ? percent : 0) : 1,
+              backgroundColor: Colors.black,
+              animation: false,
+              padding: const EdgeInsets.only(
+                // right: 40,
+                top: 32,
+                bottom: 32,
+                left: 20,
+              ),
+              width: min(70, 70.w),
             ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              for (int i = 0; i < 4; i++)
+              for (int i = 0; i < 3; i++)
                 TriangularConatiner(
-                  color: const Color.fromARGB(255, 186, 252, 162),
+                  color: (round) >= (i + 1)
+                      ? const Color.fromARGB(255, 219, 22, 47)
+                      : const Color.fromARGB(255, 186, 252, 162),
+                  fontColor: (round) >= (i + 1)
+                      ? const Color.fromARGB(255, 219, 223, 172)
+                      : Colors.black,
                   text: (i + 1).toString(),
                 ),
               Container(
+                margin: const EdgeInsets.only(
+                  left: 20,
+                ),
                 decoration: const BoxDecoration(
                   color: Colors.black,
                   shape: BoxShape.circle,
@@ -44,12 +101,15 @@ class QuizBar extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const CircleAvatar(
-                  backgroundImage: NetworkImage(
+                child: CircleAvatar(
+                  backgroundImage: const NetworkImage(
                     'https://images.unsplash.com/photo-1718963892270-04300c864522?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                   ),
-                  radius: 32,
+                  radius: min(32, 32.w),
                 ),
+              ),
+              SizedBox(
+                width: 10.w,
               ),
             ],
           ),

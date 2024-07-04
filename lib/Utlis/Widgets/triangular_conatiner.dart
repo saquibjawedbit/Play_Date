@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../Paints/r_p_s_custom_painter.dart';
 
 class TriangularConatiner extends StatelessWidget {
@@ -6,9 +9,11 @@ class TriangularConatiner extends StatelessWidget {
     super.key,
     required this.color,
     required this.text,
+    required this.fontColor,
   });
 
   final Color color;
+  final Color fontColor;
   final String text;
 
   @override
@@ -16,13 +21,16 @@ class TriangularConatiner extends StatelessWidget {
     return CustomPaint(
       painter: RPSCustomPainter(color: color),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 30),
+        padding: EdgeInsets.symmetric(
+          horizontal: min(42, 42.w),
+          vertical: min(36.h, 36),
+        ),
         child: Text(
           text,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(
+              fontSize: min(20, 20.sp),
+              fontWeight: FontWeight.w600,
+              color: fontColor),
         ),
       ),
     );

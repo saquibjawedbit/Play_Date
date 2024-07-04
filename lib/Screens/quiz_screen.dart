@@ -1,11 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/Utlis/Models/quiz_model.dart';
+import 'package:play_dates/controllers/quiz_controller.dart';
 import '../Utlis/Buttons/animated_btns.dart';
 import '../Utlis/Widgets/time_bar.dart';
 import '../Views/quiz_bar.dart';
 
-class QuizScreen extends StatelessWidget {
+class QuizScreen extends StatefulWidget {
   const QuizScreen({
     super.key,
     required this.questionData,
@@ -14,59 +19,78 @@ class QuizScreen extends StatelessWidget {
   final QuizModel questionData;
 
   @override
+  State<QuizScreen> createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen> {
+  final QuizController controller = Get.find();
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: bColor,
         body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const QuizBar(),
+            QuizBar(
+              percent: controller.percent,
+              round: controller.round,
+            ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 28,
+                vertical: 24,
+              ),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TimeBar(),
-                  const SizedBox(
-                    height: 30,
+                  SizedBox(
+                    height: 30.h,
                   ),
-                  Text(
-                    questionData.question,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium!
-                        .copyWith(color: Colors.white),
+                  SizedBox(
+                    width: min(400, 400.w),
+                    child: Text(
+                      widget.questionData.question,
+                      textAlign: TextAlign.start,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium!
+                          .copyWith(color: Colors.white),
+                    ),
                   ),
-                  const SizedBox(
-                    height: 30,
+                  SizedBox(
+                    height: 30.h,
                   ),
                   AnimatedBtns(
                     option: 1,
-                    color: const Color.fromARGB(255, 255, 160, 122),
-                    text: questionData.option1,
+                    color: Colors.white,
+                    text: widget.questionData.option1,
                   ),
-                  const SizedBox(
-                    height: 20,
+                  SizedBox(
+                    height: 20.h,
                   ),
                   AnimatedBtns(
                     option: 2,
-                    color: const Color.fromARGB(255, 255, 178, 239),
-                    text: questionData.option2,
+                    color: Colors.white,
+                    text: widget.questionData.option2,
                   ),
-                  const SizedBox(
-                    height: 20,
+                  SizedBox(
+                    height: 20.h,
                   ),
                   AnimatedBtns(
                     option: 3,
-                    color: const Color.fromARGB(255, 253, 253, 150),
-                    text: questionData.option3,
+                    color: Colors.white,
+                    text: widget.questionData.option3,
                   ),
-                  const SizedBox(
-                    height: 20,
+                  SizedBox(
+                    height: 20.h,
                   ),
                   AnimatedBtns(
                     option: 4,
-                    color: const Color.fromARGB(255, 127, 188, 140),
-                    text: questionData.option4,
+                    color: Colors.white,
+                    text: widget.questionData.option4,
                   ),
                 ],
               ),

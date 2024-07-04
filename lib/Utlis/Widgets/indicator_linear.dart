@@ -8,22 +8,26 @@ class IndicatorLinear extends StatelessWidget {
     required this.percent,
     this.backgroundColor,
     this.padding,
+    this.width,
+    this.animation,
   });
 
   final double percent;
   final Color? backgroundColor;
   final EdgeInsets? padding;
+  final double? width;
+  final bool? animation;
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    double w = MediaQuery.of(context).size.width;
     return LinearPercentIndicator(
       padding:
           padding ?? const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-      width: width,
+      width: width ?? w,
       percent: percent,
       barRadius: Radius.zero,
-      animation: true,
+      animation: animation ?? true,
       lineHeight: 70.0,
       progressColor: primColor,
       backgroundColor: backgroundColor ?? pColor,

@@ -1,55 +1,10 @@
+import 'dart:math';
+
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:play_dates/Utlis/Buttons/flat_btn.dart';
-import 'package:play_dates/Utlis/Colors/theme_color.dart';
-
-import '../Utlis/Paints/outlined_text.dart';
-
-class QuestEndScreen extends StatelessWidget {
-  const QuestEndScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: sandColor,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 120),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset('assets/05.png'),
-              const SizedBox(
-                height: 30,
-              ),
-              const OutlinedText(
-                text: "Quest End",
-                offset: Offset(-6, 6),
-                textColor: Colors.white,
-                fontSize: 74,
-                borderColor: Colors.black,
-              ),
-              const SizedBox(
-                height: 60,
-              ),
-              const Text(
-                "LeaderBoards in...",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              FlatBtn(onTap: () {}, text: "3 secs"),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:play_dates/Screens/home_screen.dart';
 
 class LeaderBoardScreen extends StatelessWidget {
   const LeaderBoardScreen({super.key});
@@ -67,9 +22,10 @@ class LeaderBoardScreen extends StatelessWidget {
             width: 5,
           ),
         ),
-        leadingWidth: 16,
         leading: IconButton(
-          onPressed: () {},
+          onPressed: () {
+            Get.offAll(() => const HomeScreen());
+          },
           icon: const Icon(
             Icons.close_sharp,
             size: 36,
@@ -82,11 +38,12 @@ class LeaderBoardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Status",
+              maxLines: 1,
               style: TextStyle(
                 color: Colors.black,
-                fontSize: 32,
+                fontSize: min(32.sp, 32),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -95,85 +52,44 @@ class LeaderBoardScreen extends StatelessWidget {
               titleColor: Colors.black,
               trailing: "Vanshika",
               leadingColor: Color.fromARGB(255, 146, 97, 53),
-              icon: Icons.dangerous,
+              iconPath: "assets/medal-star.png",
             ),
             const LeaderBoardTile(
               title: "Players: ",
               titleColor: Colors.black,
               trailing: "15",
               leadingColor: Color.fromARGB(204, 21, 21, 21),
-              icon: Icons.dangerous,
+              iconPath: "assets/user-big-group.png",
             ),
-            const SizedBox(
-              height: 20,
+            SizedBox(
+              height: 20.h,
             ),
-            const Text(
+            AutoSizeText(
               "Rankings",
+              maxLines: 1,
               style: TextStyle(
                 color: Colors.black,
-                fontSize: 32,
+                fontSize: min(32, 32.sp),
                 fontWeight: FontWeight.w600,
               ),
             ),
             Expanded(
               child: ListView.builder(
                 itemCount: 20,
-                itemBuilder: (context, index) => ListTile(
-                  leading: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 30,
-                        child: Text(
-                          (index + 1).toString(),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5 * 2),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 2.0,
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black,
-                              spreadRadius: 3,
-                              offset: Offset(4, 4),
-                            )
-                          ],
-                        ),
-                        child: const CircleAvatar(
-                          backgroundImage: NetworkImage(
-                            "https://images.unsplash.com/photo-1718963892270-04300c864522?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                          ),
-                          maxRadius: 16,
-                        ),
-                      )
-                    ],
-                  ),
-                  title: const Text(
-                    "Vanshika",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  trailing: Text(
-                    (index + 1).toString(),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  minVerticalPadding: 10,
-                  minTileHeight: 10,
-                ),
+                itemBuilder: (context, index) {
+                  Color color = Colors.black;
+                  if (index == 0) {
+                    color = const Color.fromARGB(255, 226, 177, 52);
+                  } else if (index == 1) {
+                    color = const Color.fromARGB(255, 150, 162, 174);
+                  } else if (index == 2) {
+                    color = const Color.fromARGB(255, 174, 129, 61);
+                  }
+                  return PlayListTile(
+                    index: index,
+                    color: color,
+                  );
+                },
               ),
             ),
           ],
@@ -183,17 +99,94 @@ class LeaderBoardScreen extends StatelessWidget {
   }
 }
 
+class PlayListTile extends StatelessWidget {
+  const PlayListTile({
+    super.key,
+    required this.index,
+    required this.color,
+  });
+
+  final int index;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 30.w,
+            child: Text(
+              (index + 1).toString(),
+              maxLines: 1,
+              style: TextStyle(
+                color: color,
+                fontSize: min(20, 20.sp),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5 * 2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: color,
+                width: 2.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color,
+                  spreadRadius: 3,
+                  offset: const Offset(4, 4),
+                )
+              ],
+            ),
+            child: CircleAvatar(
+              backgroundImage: const NetworkImage(
+                "https://images.unsplash.com/photo-1718963892270-04300c864522?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+              ),
+              maxRadius: min(16, 16.w),
+            ),
+          )
+        ],
+      ),
+      title: Text(
+        maxLines: 1,
+        "Vanshika",
+        style: TextStyle(
+          color: color,
+          fontSize: min(20, 20.sp),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      trailing: AutoSizeText(
+        (index + 1).toString(),
+        maxLines: 1,
+        style: TextStyle(
+          color: color,
+          fontSize: min(20, 20.sp),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      minVerticalPadding: 10,
+      minTileHeight: 10,
+    );
+  }
+}
+
 class LeaderBoardTile extends StatelessWidget {
   const LeaderBoardTile({
     super.key,
-    required this.icon,
+    required this.iconPath,
     required this.title,
     required this.trailing,
     required this.titleColor,
     required this.leadingColor,
   });
 
-  final IconData icon;
+  final String iconPath;
   final String title;
   final String trailing;
   final Color titleColor;
@@ -202,37 +195,36 @@ class LeaderBoardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 40),
+      padding: const EdgeInsets.only(right: 32),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.golf_course,
-                color: Colors.black,
-              ),
-              const SizedBox(
-                width: 10,
+              Image.asset(iconPath),
+              SizedBox(
+                width: 10.w,
               ),
               Text(
                 title,
+                maxLines: 1,
                 style: TextStyle(
                   color: titleColor,
-                  fontSize: 24,
+                  fontSize: min(24.sp, 24),
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
           SizedBox(
-            width: 100,
+            width: 100.w,
             child: Center(
               child: Text(
                 trailing,
+                maxLines: 1,
                 style: TextStyle(
                   color: leadingColor,
-                  fontSize: 24,
+                  fontSize: min(24, 24.sp),
                   fontWeight: FontWeight.w600,
                 ),
               ),

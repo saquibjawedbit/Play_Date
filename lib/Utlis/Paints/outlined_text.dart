@@ -26,6 +26,8 @@ class OutlinedText extends StatelessWidget {
       children: [
         Text(
           text,
+          textAlign: TextAlign.center,
+          maxLines: 1,
           style: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
@@ -38,6 +40,8 @@ class OutlinedText extends StatelessWidget {
         ),
         Text(
           text,
+          textAlign: TextAlign.center,
+          maxLines: 1,
           style: TextStyle(
             color: textColor,
             fontSize: fontSize,

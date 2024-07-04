@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
+import 'package:play_dates/Utlis/Widgets/custom_dialog_box.dart';
 import 'package:play_dates/controllers/quiz_controller.dart';
 
 class TimeBar extends StatelessWidget {
@@ -18,19 +22,26 @@ class TimeBar extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.info_outline_rounded,
-              color: sbColor,
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                    context: context,
+                    builder: (context) => const CustomDialogBox());
+              },
+              child: const Icon(
+                Icons.info_outline_rounded,
+                color: sbColor,
+              ),
             ),
-            const SizedBox(
-              width: 10,
+            SizedBox(
+              width: 10.w,
             ),
             Obx(
               () => Text(
                 controller.question.toString(),
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: min(16, 16.sp),
                 ),
               ),
             ),
@@ -41,13 +52,13 @@ class TimeBar extends StatelessWidget {
           children: [
             Obx(() => Text(
                   controller.time.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: min(16, 16.sp),
                   ),
                 )),
-            const SizedBox(
-              width: 10,
+            SizedBox(
+              width: 10.w,
             ),
             const Icon(
               Icons.access_time,
