@@ -33,10 +33,10 @@ class QuizModel {
 final dummyData = [
   QuizModel(
     startTime: Timestamp.fromDate(
-      DateTime(2024, 07, 05, 23, 11, 0),
+      DateTime(2024, 07, 06, 00, 35, 0),
     ),
     endTime: Timestamp.fromDate(
-      DateTime(2024, 07, 05, 23, 12, 0),
+      DateTime(2024, 07, 06, 00, 36, 0),
     ),
     questions: [
       const QuizData(

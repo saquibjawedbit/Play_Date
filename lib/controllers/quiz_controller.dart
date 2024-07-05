@@ -19,7 +19,7 @@ class QuizController extends GetxController {
   int secondsElapsed = 0;
   int round = 1;
 
-  bool isQuiz = false;
+  var isQuiz = false.obs;
 
   final time = '00.00'.obs;
   final timeLeft = '00:00'.obs;
@@ -27,15 +27,14 @@ class QuizController extends GetxController {
   final List<int> answers = [];
 
   Future<void> loadData() async {
-    // categoryRepo.createCategories('contest', dummyData[0].toMap());
+    categoryRepo.createCategories('contest', dummyData[0].toMap());
     DateTime currentTime = await NTP.now();
     DateTime startTime, endTime;
-
-    if (currentTime.hour <= 13 && currentTime.minute <= 12) {
+    if (currentTime.hour <= 13 && currentTime.minute <= 11) {
       startTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 13, 11);
+          currentTime.year, currentTime.month, currentTime.day, 00, 38);
       endTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 13, 15);
+          currentTime.year, currentTime.month, currentTime.day, 00, 36);
       round = 1;
     } else if (currentTime.hour <= 17 && currentTime.minute <= 56) {
       startTime = DateTime(
@@ -47,7 +46,7 @@ class QuizController extends GetxController {
       startTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 23, 11, 00);
       endTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 23, 11, 00);
+          currentTime.year, currentTime.month, currentTime.day, 23, 12, 00);
       round = 3;
     } else {
       startTime = DateTime(
@@ -59,15 +58,18 @@ class QuizController extends GetxController {
 
     if (currentTime.isAfter(startTime) && currentTime.isBefore(endTime)) {
       debugPrint("Quiz started at $startTime, Round: $round");
-      isQuiz = true;
-      timeLeft.value = "Play Now";
+      isQuiz.value = true;
       final models = await categoryRepo.fetchQuizModel(startTime: startTime);
       if (models.isNotEmpty) {
         quizModel = models[0];
       }
     } else {
       debugPrint("Next At $startTime");
-      nextQuiz = startTime.difference(currentTime).inSeconds;
+      if (startTime.isAfter(currentTime)) {
+        nextQuiz = startTime.difference(currentTime).inSeconds;
+      } else {
+        nextQuiz = currentTime.difference(startTime).inSeconds;
+      }
     }
   }
 
@@ -80,8 +82,8 @@ class QuizController extends GetxController {
     int minutes = (secondsElapsed % 3600) ~/ 60;
     int seconds = secondsElapsed % 60;
     if (secondsElapsed <= 0) {
-      await loadData();
       _timer!.cancel();
+      await loadData();
     }
     timeLeft.value =
         "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
@@ -121,7 +123,7 @@ class QuizController extends GetxController {
   }
 
   void nextPage() {
-    if (!isQuiz) return;
+    if (!isQuiz.value) return;
     if (currentQuestion == -1) _startTimer();
     currentQuestion += 1;
     question.value = "${(currentQuestion + 1).toString().padLeft(2, '0')}/04";

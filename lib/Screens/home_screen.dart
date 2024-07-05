@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isLoading = false;
     });
-    if (!_isLoading && !quizController.isQuiz) quizController.start();
+    if (!_isLoading && !quizController.isQuiz.value) quizController.start();
   }
 
   @override
@@ -75,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Obx(
                         () => FlatBtn(
-                          onTap: !quizController.isQuiz
+                          onTap: !quizController.isQuiz.value
                               ? null
                               : () {
                                   setState(() {
@@ -98,7 +98,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     },
                                   );
                                 },
-                          text: "${quizController.timeLeft}",
+                          text: quizController.isQuiz.value
+                              ? "Play Now"
+                              : "${quizController.timeLeft}",
                           color: color,
                         ),
                       ),
