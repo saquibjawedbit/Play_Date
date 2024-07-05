@@ -26,10 +26,11 @@ class DbManager {
     }
   }
 
-  Future<List<QuizModel>> fetchQuizModel() async {
+  Future<List<QuizModel>> fetchQuizModel({required DateTime startTime}) async {
     try {
       final categoriesData = await dbClient.fetchOnly(
         collection: 'contest',
+        startTime: startTime,
       );
       final categories = categoriesData
           .map<QuizModel>(

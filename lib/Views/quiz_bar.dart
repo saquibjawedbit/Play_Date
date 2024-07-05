@@ -28,7 +28,7 @@ class QuizBar extends StatelessWidget {
         alignment: AlignmentDirectional.center,
         children: [
           Positioned(
-            left: 50,
+            left: min(50, 50.w),
             child: IndicatorLinear(
               percent: round == 1 ? percent : 1,
               backgroundColor: Colors.black,
@@ -39,11 +39,11 @@ class QuizBar extends StatelessWidget {
                 bottom: 32,
                 left: 20,
               ),
-              width: min(70, 70.w),
+              width: max(70, 70.w),
             ),
           ),
           Positioned(
-            left: 140,
+            left: min(140, 140.w),
             child: IndicatorLinear(
               percent: round <= 2 ? (round == 2 ? percent : 0) : 1,
               backgroundColor: Colors.black,
@@ -54,11 +54,11 @@ class QuizBar extends StatelessWidget {
                 bottom: 32,
                 left: 20,
               ),
-              width: min(70, 70.w),
+              width: max(70, 70.w),
             ),
           ),
           Positioned(
-            left: 240,
+            left: min(240, 240.w),
             child: IndicatorLinear(
               percent: round <= 3 ? (round == 3 ? percent : 0) : 1,
               backgroundColor: Colors.black,
@@ -69,7 +69,7 @@ class QuizBar extends StatelessWidget {
                 bottom: 32,
                 left: 20,
               ),
-              width: min(70, 70.w),
+              width: max(70, 70.w),
             ),
           ),
           Row(

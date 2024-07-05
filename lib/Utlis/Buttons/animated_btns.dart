@@ -48,6 +48,7 @@ class _AnimatedBtnsState extends State<AnimatedBtns> {
         width: min(400.w, 400),
         padding: const EdgeInsets.symmetric(
           vertical: 23,
+          horizontal: 24,
         ),
         decoration: BoxDecoration(
           color: isTapped ? color : widget.color,
@@ -63,6 +64,7 @@ class _AnimatedBtnsState extends State<AnimatedBtns> {
         child: Center(
           child: Text(
             widget.text,
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.displayMedium!.copyWith(
                   color: Colors.black,
                   fontWeight: FontWeight.w500,

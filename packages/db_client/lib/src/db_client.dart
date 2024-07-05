@@ -40,12 +40,13 @@ class DbClient {
     }
   }
 
-  Future<List<DbRecord>> fetchOnly({required String collection}) async {
+  Future<List<DbRecord>> fetchOnly(
+      {required String collection, required DateTime startTime}) async {
     try {
       final colRef = _firestore.collection(collection).where(
             'startTime',
             isEqualTo: Timestamp.fromDate(
-              DateTime(2024, 7, 4, 20, 00),
+              startTime,
             ),
           );
       final documents = await colRef.get();

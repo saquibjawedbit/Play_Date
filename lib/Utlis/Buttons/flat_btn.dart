@@ -11,7 +11,7 @@ class FlatBtn extends StatefulWidget {
     this.color,
   });
 
-  final Function() onTap;
+  final Function()? onTap;
   final String text;
   final Color? color;
 

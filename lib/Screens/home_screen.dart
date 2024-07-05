@@ -18,12 +18,20 @@ class _HomeScreenState extends State<HomeScreen> {
   final QuizController quizController = Get.put(QuizController());
 
   bool _selected = false;
+  bool _isLoading = true;
   Color? color;
 
   @override
   void initState() {
-    quizController.loadData();
     super.initState();
+    start();
+  }
+
+  void start() async {
+    await quizController.loadData();
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -33,99 +41,116 @@ class _HomeScreenState extends State<HomeScreen> {
     final round = quizController.round;
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 250, 239, 223),
-      body: Stack(
-        children: [
-          if (round != 2)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 400),
-              top: _selected ? height - 380.h : height - 400.h,
-              left: _selected ? width - 240.w : width - 160.w,
-              child: Image.asset(
-                'assets/04.png',
-                fit: BoxFit.cover,
-                height: min(360, 360.h),
-              ),
-            ),
-          if (round == 2)
-            Align(
-              alignment: Alignment.bottomLeft,
-              child: Image.asset(
-                'assets/06.png',
-                fit: BoxFit.cover,
-                height: min(350, 350.h),
-              ),
-            ),
-          Padding(
-            padding: EdgeInsets.only(top: 120.h, left: 32.w, right: 32.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator.adaptive())
+          : Stack(
               children: [
-                TitleBanner(
-                  selected: _selected,
-                  round: round,
+                if (round != 2) bannerOne(height, width),
+                if (round == 2) lionImage(),
+                Padding(
+                  padding: EdgeInsets.only(top: 120.h, left: 32.w, right: 32.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      TitleBanner(
+                        selected: _selected,
+                        round: round,
+                      ),
+                      SizedBox(
+                        height: 60.h,
+                      ),
+                      OutlinedText(
+                        text: "Instructions",
+                        fontSize: min(34, 34.sp),
+                        textColor: Colors.white,
+                        borderColor: Colors.black,
+                        offset: const Offset(1, 4),
+                        letterSpacing: 0,
+                        strokeWidth: 2,
+                      ),
+                      const InfoBox(),
+                      SizedBox(
+                        height: 40.h,
+                      ),
+                      Obx(() => enterBtn()),
+                    ],
+                  ),
                 ),
-                SizedBox(
-                  height: 60.h,
-                ),
-                OutlinedText(
-                  text: "Instructions",
-                  fontSize: min(34, 34.sp),
-                  textColor: Colors.white,
-                  borderColor: Colors.black,
-                  offset: const Offset(1, 4),
-                  letterSpacing: 0,
-                  strokeWidth: 2,
-                ),
-                const InfoBox(),
-                SizedBox(
-                  height: 40.h,
-                ),
-                FlatBtn(
-                  onTap: () {
-                    setState(() {
-                      color = Colors.white;
-                      _selected = true;
-                    });
-                    Future.delayed(
-                      const Duration(milliseconds: 1000),
-                      () {
-                        setState(() {
-                          color = Colors.white;
-                          _selected = false;
-                        });
-                        Future.delayed(
-                          const Duration(milliseconds: 1000),
-                          () {
-                            quizController.nextPage();
-                          },
-                        );
-                      },
-                    );
-                  },
-                  text: "Play Now",
-                  color: color,
-                )
+                if (round != 2) jokerImage(),
               ],
             ),
-          ),
-          if (round != 2)
-            AnimatedPositioned(
-              left: _selected ? 80 : -20,
-              top: -10,
-              duration: const Duration(milliseconds: 300),
-              child: Image.asset(
-                'assets/02.png',
-                height: min(150.h, 150),
-                fit: BoxFit.cover,
-              ),
-            ),
-        ],
-      ),
       bottomNavigationBar: BottomNavigationBar(items: const [
         BottomNavigationBarItem(icon: Icon(Icons.add), label: "hello"),
         BottomNavigationBarItem(icon: Icon(Icons.add), label: "hello"),
         BottomNavigationBarItem(icon: Icon(Icons.add), label: "hello"),
       ]),
+    );
+  }
+
+  FlatBtn enterBtn() {
+    return FlatBtn(
+      onTap: !quizController.isQuiz
+          ? null
+          : () {
+              setState(() {
+                color = Colors.white;
+                _selected = true;
+              });
+              Future.delayed(
+                const Duration(milliseconds: 1000),
+                () {
+                  setState(() {
+                    color = Colors.white;
+                    _selected = false;
+                  });
+                  Future.delayed(
+                    const Duration(milliseconds: 1000),
+                    () {
+                      quizController.nextPage();
+                    },
+                  );
+                },
+              );
+            },
+      text: quizController.timeLeft.value,
+      color: color,
+    );
+  }
+
+  AnimatedPositioned jokerImage() {
+    return AnimatedPositioned(
+      left: _selected ? 80 : -20,
+      top: -10,
+      duration: const Duration(milliseconds: 300),
+      child: Image.asset(
+        'assets/02.png',
+        height: min(150.h, 150),
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Align lionImage() {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Image.asset(
+        'assets/06.png',
+        fit: BoxFit.cover,
+        height: min(350, 350.h),
+      ),
+    );
+  }
+
+  AnimatedPositioned bannerOne(double height, double width) {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 400),
+      top: _selected ? height - 380.h : height - 400.h,
+      left: _selected ? width - 240.w : width - 160.w,
+      child: Image.asset(
+        'assets/04.png',
+        fit: BoxFit.cover,
+        height: min(360, 360.h),
+      ),
     );
   }
 }

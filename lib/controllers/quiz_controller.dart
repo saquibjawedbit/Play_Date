@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:ntp/ntp.dart';
 import 'package:play_dates/Screens/leaderboard_screen.dart';
 import 'package:play_dates/Screens/quest_end_screen.dart';
 import 'package:play_dates/Screens/quiz_screen.dart';
@@ -8,23 +10,64 @@ import 'package:play_dates/main.dart';
 
 class QuizController extends GetxController {
   Timer? _timer;
-  double percent = 0;
-
   QuizModel? quizModel;
-
-  int round = 2;
+  double percent = 0;
   int currentQuestion = -1;
   int secondsElapsed = 0;
-  final time = '00.00'.obs;
+  int round = 1;
 
+  bool isQuiz = false;
+
+  final time = '00.00'.obs;
+  final timeLeft = '00:00'.obs;
   final question = "00/00".obs;
   final List<int> answers = [];
 
-  void loadData() async {
-    final models = await categoryRepo.fetchQuizModel();
-    if (models.isNotEmpty) {
-      quizModel = models[0];
+  Future<void> loadData() async {
+    //categoryRepo.createCategories('contest', dummyData[0].toMap());
+    DateTime currentTime = await NTP.now();
+    DateTime startTime, endTime;
+
+    if (currentTime.hour <= 13 && currentTime.minute <= 12) {
+      startTime = DateTime(
+          currentTime.year, currentTime.month, currentTime.day, 13, 11);
+      endTime = DateTime(
+          currentTime.year, currentTime.month, currentTime.day, 13, 15);
+      round = 1;
+    } else if (currentTime.hour <= 17 && currentTime.minute <= 56) {
+      startTime = DateTime(
+          currentTime.year, currentTime.month, currentTime.day, 17, 55);
+      endTime = DateTime(
+          currentTime.year, currentTime.month, currentTime.day, 17, 58);
+      round = 2;
+    } else {
+      startTime = DateTime(
+          currentTime.year, currentTime.month, currentTime.day, 23, 11);
+      endTime = DateTime(
+          currentTime.year, currentTime.month, currentTime.day, 23, 15);
+      round = 3;
     }
+
+    if (currentTime.isAfter(startTime) && currentTime.isBefore(endTime)) {
+      debugPrint("Quiz started at $startTime, Round: $round");
+      isQuiz = true;
+      timeLeft.value = "Play Now";
+      _timer!.cancel();
+      final models = await categoryRepo.fetchQuizModel(startTime: startTime);
+      if (models.isNotEmpty) {
+        quizModel = models[0];
+      }
+    } else {
+      debugPrint("Next At $startTime");
+    }
+  }
+
+  void onTimerEnd() {
+    int hours = secondsElapsed ~/ 3600;
+    int minutes = (secondsElapsed % 3600) ~/ 60;
+    int seconds = secondsElapsed % 60;
+    timeLeft.value =
+        "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
   }
 
   void _startTimer() {
@@ -38,37 +81,43 @@ class QuizController extends GetxController {
     });
   }
 
-  void _elapsedTimer() {
+  void switchToLeaderBoard() {
+    int seconds = (secondsElapsed % 60);
+    if (secondsElapsed <= 0) {
+      _timer!.cancel();
+      Get.offAll(
+        () => const LeaderBoardScreen(),
+      );
+    }
+    time.value = "${seconds.toString().padLeft(2, '0')} secs";
+  }
+
+  void _elapsedTimer(Function onTimeEnd, int tTime) {
     _timer!.cancel();
     time.value = "05 secs";
-    secondsElapsed = 4;
+    secondsElapsed = tTime;
     const duration = Duration(seconds: 1);
     _timer = Timer.periodic(duration, (Timer timer) {
-      int seconds = (secondsElapsed % 60);
-      if (secondsElapsed <= 0) {
-        _timer!.cancel();
-        Get.offAll(
-          () => const LeaderBoardScreen(),
-        );
-      }
-      time.value = "${seconds.toString().padLeft(2, '0')} secs";
+      onTimerEnd();
       secondsElapsed--;
     });
   }
 
   void nextPage() {
+    if (!isQuiz) return;
     if (currentQuestion == -1) _startTimer();
     currentQuestion += 1;
     question.value = "${(currentQuestion + 1).toString().padLeft(2, '0')}/04";
     percent = (currentQuestion + 1) / 4;
     if (currentQuestion >= 4) {
-      _elapsedTimer();
+      _elapsedTimer(switchToLeaderBoard, 5);
       Get.offAll(() => QuestEndScreen());
     } else if (quizModel != null) {
       Get.offAll(
         () => QuizScreen(
-            questionData: QuizData.fromJson(
-                quizModel!.questions[currentQuestion] as Map<String, dynamic>)),
+          questionData: QuizData.fromJson(
+              quizModel!.questions[currentQuestion] as Map<String, dynamic>),
+        ),
         transition: Transition.fadeIn,
       );
     }
