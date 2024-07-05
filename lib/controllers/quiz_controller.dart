@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ntp/ntp.dart';
 import 'package:play_dates/Screens/leaderboard_screen.dart';
@@ -12,6 +13,8 @@ class QuizController extends GetxController {
   Timer? _timer;
   QuizModel? quizModel;
   double percent = 0;
+
+  int nextQuiz = 0;
   int currentQuestion = -1;
   int secondsElapsed = 0;
   int round = 1;
@@ -24,7 +27,7 @@ class QuizController extends GetxController {
   final List<int> answers = [];
 
   Future<void> loadData() async {
-    //categoryRepo.createCategories('contest', dummyData[0].toMap());
+    // categoryRepo.createCategories('contest', dummyData[0].toMap());
     DateTime currentTime = await NTP.now();
     DateTime startTime, endTime;
 
@@ -40,32 +43,46 @@ class QuizController extends GetxController {
       endTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 17, 58);
       round = 2;
+    } else if (currentTime.hour <= 23 && currentTime.minute <= 12) {
+      startTime = DateTime(
+          currentTime.year, currentTime.month, currentTime.day, 23, 11, 00);
+      endTime = DateTime(
+          currentTime.year, currentTime.month, currentTime.day, 23, 11, 00);
+      round = 3;
     } else {
       startTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 23, 11);
+          currentTime.year, currentTime.month, currentTime.day, 13, 11);
       endTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 23, 15);
-      round = 3;
+          currentTime.year, currentTime.month, currentTime.day, 13, 15);
+      round = 1;
     }
 
     if (currentTime.isAfter(startTime) && currentTime.isBefore(endTime)) {
       debugPrint("Quiz started at $startTime, Round: $round");
       isQuiz = true;
       timeLeft.value = "Play Now";
-      _timer!.cancel();
       final models = await categoryRepo.fetchQuizModel(startTime: startTime);
       if (models.isNotEmpty) {
         quizModel = models[0];
       }
     } else {
       debugPrint("Next At $startTime");
+      nextQuiz = startTime.difference(currentTime).inSeconds;
     }
   }
 
-  void onTimerEnd() {
+  void start() {
+    _elapsedTimer(onTimerEnd, nextQuiz);
+  }
+
+  void onTimerEnd() async {
     int hours = secondsElapsed ~/ 3600;
     int minutes = (secondsElapsed % 3600) ~/ 60;
     int seconds = secondsElapsed % 60;
+    if (secondsElapsed <= 0) {
+      await loadData();
+      _timer!.cancel();
+    }
     timeLeft.value =
         "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
   }
@@ -93,12 +110,12 @@ class QuizController extends GetxController {
   }
 
   void _elapsedTimer(Function onTimeEnd, int tTime) {
-    _timer!.cancel();
+    if (_timer != null) _timer!.cancel();
     time.value = "05 secs";
     secondsElapsed = tTime;
     const duration = Duration(seconds: 1);
     _timer = Timer.periodic(duration, (Timer timer) {
-      onTimerEnd();
+      onTimeEnd();
       secondsElapsed--;
     });
   }

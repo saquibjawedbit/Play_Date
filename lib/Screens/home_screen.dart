@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isLoading = false;
     });
+    if (!_isLoading && !quizController.isQuiz) quizController.start();
   }
 
   @override
@@ -72,7 +73,35 @@ class _HomeScreenState extends State<HomeScreen> {
                       SizedBox(
                         height: 40.h,
                       ),
-                      Obx(() => enterBtn()),
+                      Obx(
+                        () => FlatBtn(
+                          onTap: !quizController.isQuiz
+                              ? null
+                              : () {
+                                  setState(() {
+                                    color = Colors.white;
+                                    _selected = true;
+                                  });
+                                  Future.delayed(
+                                    const Duration(milliseconds: 1000),
+                                    () {
+                                      setState(() {
+                                        color = Colors.white;
+                                        _selected = false;
+                                      });
+                                      Future.delayed(
+                                        const Duration(milliseconds: 1000),
+                                        () {
+                                          quizController.nextPage();
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                          text: "${quizController.timeLeft}",
+                          color: color,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -84,36 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
         BottomNavigationBarItem(icon: Icon(Icons.add), label: "hello"),
         BottomNavigationBarItem(icon: Icon(Icons.add), label: "hello"),
       ]),
-    );
-  }
-
-  FlatBtn enterBtn() {
-    return FlatBtn(
-      onTap: !quizController.isQuiz
-          ? null
-          : () {
-              setState(() {
-                color = Colors.white;
-                _selected = true;
-              });
-              Future.delayed(
-                const Duration(milliseconds: 1000),
-                () {
-                  setState(() {
-                    color = Colors.white;
-                    _selected = false;
-                  });
-                  Future.delayed(
-                    const Duration(milliseconds: 1000),
-                    () {
-                      quizController.nextPage();
-                    },
-                  );
-                },
-              );
-            },
-      text: quizController.timeLeft.value,
-      color: color,
     );
   }
 
