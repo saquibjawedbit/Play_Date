@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Play_Date",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "Play_Date (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "Play_Date (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "db_client",
+            "cwd": "packages\\db_client",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "db_client (profile mode)",
+            "cwd": "packages\\db_client",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "db_client (release mode)",
+            "cwd": "packages\\db_client",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

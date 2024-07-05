@@ -1,4 +1,5 @@
 import 'package:db_client/db_client.dart';
+import 'package:play_dates/Utlis/Models/quiz_model.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
 
 class DbManager {
@@ -12,10 +13,31 @@ class DbManager {
         collection: 'users',
       );
       final categories = categoriesData
-          .map<UserModel>((categoryData) => UserModel.fromJson(
-                id: categoryData.id,
-                categoryData.data,
-              ))
+          .map<UserModel>(
+            (categoryData) => UserModel.fromJson(
+              id: categoryData.id,
+              categoryData.data,
+            ),
+          )
+          .toList();
+      return categories;
+    } catch (err) {
+      throw Exception('Failed to fetch the categories $err');
+    }
+  }
+
+  Future<List<QuizModel>> fetchQuizModel() async {
+    try {
+      final categoriesData = await dbClient.fetchOnly(
+        collection: 'contest',
+      );
+      final categories = categoriesData
+          .map<QuizModel>(
+            (categoryData) => QuizModel.fromJson(
+              id: categoryData.id,
+              categoryData.data,
+            ),
+          )
           .toList();
       return categories;
     } catch (err) {

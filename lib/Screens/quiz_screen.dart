@@ -16,7 +16,7 @@ class QuizScreen extends StatefulWidget {
     required this.questionData,
   });
 
-  final QuizModel questionData;
+  final QuizData questionData;
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -66,7 +66,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   AnimatedBtns(
                     option: 1,
                     color: Colors.white,
-                    text: widget.questionData.option1,
+                    text: widget.questionData.answers[0],
                   ),
                   SizedBox(
                     height: 20.h,
@@ -74,7 +74,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   AnimatedBtns(
                     option: 2,
                     color: Colors.white,
-                    text: widget.questionData.option2,
+                    text: widget.questionData.answers[1],
                   ),
                   SizedBox(
                     height: 20.h,
@@ -82,7 +82,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   AnimatedBtns(
                     option: 3,
                     color: Colors.white,
-                    text: widget.questionData.option3,
+                    text: widget.questionData.answers[2],
                   ),
                   SizedBox(
                     height: 20.h,
@@ -90,7 +90,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   AnimatedBtns(
                     option: 4,
                     color: Colors.white,
-                    text: widget.questionData.option4,
+                    text: widget.questionData.answers[3],
                   ),
                 ],
               ),

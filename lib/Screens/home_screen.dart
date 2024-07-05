@@ -21,23 +21,40 @@ class _HomeScreenState extends State<HomeScreen> {
   Color? color;
 
   @override
+  void initState() {
+    quizController.loadData();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+    final round = quizController.round;
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 250, 239, 223),
       body: Stack(
         children: [
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 400),
-            top: _selected ? height - 380.h : height - 400.h,
-            left: _selected ? width - 240.w : width - 160.w,
-            child: Image.asset(
-              'assets/04.png',
-              fit: BoxFit.cover,
-              height: min(360, 360.h),
+          if (round != 2)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 400),
+              top: _selected ? height - 380.h : height - 400.h,
+              left: _selected ? width - 240.w : width - 160.w,
+              child: Image.asset(
+                'assets/04.png',
+                fit: BoxFit.cover,
+                height: min(360, 360.h),
+              ),
             ),
-          ),
+          if (round == 2)
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Image.asset(
+                'assets/06.png',
+                fit: BoxFit.cover,
+                height: min(350, 350.h),
+              ),
+            ),
           Padding(
             padding: EdgeInsets.only(top: 120.h, left: 32.w, right: 32.w),
             child: Column(
@@ -45,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 TitleBanner(
                   selected: _selected,
+                  round: round,
                 ),
                 SizedBox(
                   height: 60.h,
@@ -90,16 +108,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          AnimatedPositioned(
-            left: _selected ? 80 : -20,
-            top: -10,
-            duration: const Duration(milliseconds: 300),
-            child: Image.asset(
-              'assets/02.png',
-              height: min(150.h, 150),
-              fit: BoxFit.cover,
+          if (round != 2)
+            AnimatedPositioned(
+              left: _selected ? 80 : -20,
+              top: -10,
+              duration: const Duration(milliseconds: 300),
+              child: Image.asset(
+                'assets/02.png',
+                height: min(150.h, 150),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(items: const [
@@ -186,12 +205,15 @@ class TitleBanner extends StatelessWidget {
   const TitleBanner({
     super.key,
     required this.selected,
+    required this.round,
   });
 
   final bool selected;
+  final int round;
 
   @override
   Widget build(BuildContext context) {
+    final List<String> val = ["One", "Two", "Three"];
     return ClipRect(
       child: SizedBox(
         width: min(380.w, 380),
@@ -199,114 +221,158 @@ class TitleBanner extends StatelessWidget {
         child: Stack(
           children: [
             Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              width: double.infinity,
+              height: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 8,
+              ),
               decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.black,
+                  width: 5.0,
+                ),
+                boxShadow: const [
+                  BoxShadow(
                     color: Colors.black,
-                    width: 5.0,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black,
-                      spreadRadius: 4,
-                      offset: Offset(5, 5),
-                    )
-                  ]),
+                    spreadRadius: 4,
+                    offset: Offset(5, 5),
+                  )
+                ],
+              ),
               child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: OutlinedText(
-                      text: " Chamber Of ",
-                      fontSize: min(48, 48.sp),
-                      textColor: const Color.fromARGB(255, 235, 240, 0),
-                      borderColor: Colors.black,
-                      offset: const Offset(-5, 4.5),
-                    ),
-                  ),
-                  Positioned(
-                    top: 20,
-                    left: 90,
-                    child: Stack(
-                      children: [
-                        RotationTransition(
-                          turns: const AlwaysStoppedAnimation(-4.86 / 360),
+                children: round != 2
+                    ? questOneBanner(val)
+                    : [
+                        Align(
+                          alignment: Alignment.topCenter,
                           child: OutlinedText(
-                            text: " Lies",
-                            fontSize: min(77, 77.sp),
-                            textColor: Colors.black,
-                            borderColor: Colors.black,
-                            offset: const Offset(-5, 4.5),
-                          ),
-                        ),
-                        AnimatedRotation(
-                          turns: selected ? 0 / 360 : -4.86 / 360,
-                          duration: const Duration(milliseconds: 300),
-                          child: OutlinedText(
-                            text: "Lies",
-                            fontSize: min(77, 77.sp),
+                            text: "The Secret",
+                            fontSize: min(48, 48.sp),
                             textColor: const Color.fromARGB(255, 132, 215, 255),
                             borderColor: Colors.black,
-                            offset: const Offset(-5, 4.5),
+                            offset: const Offset(-5, 5),
                           ),
                         ),
-                        AnimatedRotation(
-                          turns: selected ? 5 / 360 : -4.86 / 360,
-                          duration: const Duration(milliseconds: 300),
+                        Align(
+                          alignment: Alignment.center,
                           child: OutlinedText(
-                            text: "Lies",
-                            fontSize: min(77, 77.sp),
+                            text: "Library",
+                            fontSize: min(78, 78.sp),
                             textColor: const Color.fromARGB(255, 255, 151, 217),
                             borderColor: Colors.black,
-                            offset: const Offset(-5, 4.5),
+                            offset: const Offset(5, 5),
                           ),
                         ),
-                        AnimatedRotation(
-                          turns: selected ? 10 / 360 : -4.86 / 360,
-                          duration: const Duration(milliseconds: 300),
-                          child: OutlinedText(
-                            text: "Lies",
-                            fontSize: min(77, 77.sp),
-                            textColor: const Color.fromARGB(255, 219, 22, 47),
-                            borderColor: Colors.black,
-                            offset: const Offset(-5, 4.5),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Text(
+                            "Quest ${val[round - 1]}",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                              fontSize: min(28.sp, 28),
+                            ),
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Text(
-                      "Quest One",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                        fontSize: min(28.sp, 28),
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              top: selected ? 10 : 0,
-              left: selected ? -10 : 0,
-              child: FractionalTranslation(
-                translation: const Offset(-.15, 0.6),
-                child: Image.asset(
-                  "assets/rainbow.png",
-                  height: min(150, 150.h),
+            if (round != 2)
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                top: selected ? 10 : 0,
+                left: selected ? -10 : 0,
+                child: FractionalTranslation(
+                  translation: const Offset(-.15, 0.6),
+                  child: Image.asset(
+                    "assets/rainbow.png",
+                    height: min(150, 150.h),
+                  ),
                 ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> questOneBanner(List<String> val) {
+    return [
+      Align(
+        alignment: Alignment.topCenter,
+        child: OutlinedText(
+          text: " Chamber Of ",
+          fontSize: min(48, 48.sp),
+          textColor: const Color.fromARGB(255, 235, 240, 0),
+          borderColor: Colors.black,
+          offset: const Offset(-5, 4.5),
+        ),
+      ),
+      Positioned(
+        top: 20,
+        left: 90,
+        child: Stack(
+          children: [
+            RotationTransition(
+              turns: const AlwaysStoppedAnimation(-4.86 / 360),
+              child: OutlinedText(
+                text: " Lies",
+                fontSize: min(77, 77.sp),
+                textColor: Colors.black,
+                borderColor: Colors.black,
+                offset: const Offset(-5, 4.5),
+              ),
+            ),
+            AnimatedRotation(
+              turns: selected ? 0 / 360 : -4.86 / 360,
+              duration: const Duration(milliseconds: 300),
+              child: OutlinedText(
+                text: "Lies",
+                fontSize: min(77, 77.sp),
+                textColor: const Color.fromARGB(255, 132, 215, 255),
+                borderColor: Colors.black,
+                offset: const Offset(-5, 4.5),
+              ),
+            ),
+            AnimatedRotation(
+              turns: selected ? 5 / 360 : -4.86 / 360,
+              duration: const Duration(milliseconds: 300),
+              child: OutlinedText(
+                text: "Lies",
+                fontSize: min(77, 77.sp),
+                textColor: const Color.fromARGB(255, 255, 151, 217),
+                borderColor: Colors.black,
+                offset: const Offset(-5, 4.5),
+              ),
+            ),
+            AnimatedRotation(
+              turns: selected ? 10 / 360 : -4.86 / 360,
+              duration: const Duration(milliseconds: 300),
+              child: OutlinedText(
+                text: "Lies",
+                fontSize: min(77, 77.sp),
+                textColor: const Color.fromARGB(255, 219, 22, 47),
+                borderColor: Colors.black,
+                offset: const Offset(-5, 4.5),
               ),
             ),
           ],
         ),
       ),
-    );
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          "Quest ${val[round - 1]}",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w500,
+            fontSize: min(28.sp, 28),
+          ),
+        ),
+      ),
+    ];
   }
 }

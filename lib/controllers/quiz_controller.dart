@@ -1,20 +1,31 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:play_dates/Screens/leaderboard_screen.dart';
 import 'package:play_dates/Screens/quest_end_screen.dart';
 import 'package:play_dates/Screens/quiz_screen.dart';
 import 'package:play_dates/Utlis/Models/quiz_model.dart';
+import 'package:play_dates/main.dart';
 
 class QuizController extends GetxController {
   Timer? _timer;
-  final time = '00.00'.obs;
-  final question = "00/00".obs;
   double percent = 0;
-  int round = 1;
+
+  QuizModel? quizModel;
+
+  int round = 2;
   int currentQuestion = -1;
   int secondsElapsed = 0;
+  final time = '00.00'.obs;
+
+  final question = "00/00".obs;
   final List<int> answers = [];
+
+  void loadData() async {
+    final models = await categoryRepo.fetchQuizModel();
+    if (models.isNotEmpty) {
+      quizModel = models[0];
+    }
+  }
 
   void _startTimer() {
     const duration = Duration(seconds: 1);
@@ -48,17 +59,17 @@ class QuizController extends GetxController {
   void nextPage() {
     if (currentQuestion == -1) _startTimer();
     currentQuestion += 1;
-    question.value =
-        "${(currentQuestion + 1).toString().padLeft(2, '0')}/${dummyData.length.toString().padLeft(2, '0')}";
+    question.value = "${(currentQuestion + 1).toString().padLeft(2, '0')}/04";
     percent = (currentQuestion + 1) / 4;
-    if (currentQuestion >= dummyData.length) {
+    if (currentQuestion >= 4) {
       _elapsedTimer();
       Get.offAll(() => QuestEndScreen());
-    } else {
+    } else if (quizModel != null) {
       Get.offAll(
-        () => QuizScreen(questionData: dummyData[currentQuestion]),
+        () => QuizScreen(
+            questionData: QuizData.fromJson(
+                quizModel!.questions[currentQuestion] as Map<String, dynamic>)),
         transition: Transition.fadeIn,
-        curve: Curves.bounceIn,
       );
     }
   }

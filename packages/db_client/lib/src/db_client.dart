@@ -40,6 +40,28 @@ class DbClient {
     }
   }
 
+  Future<List<DbRecord>> fetchOnly({required String collection}) async {
+    try {
+      final colRef = _firestore.collection(collection).where(
+            'startTime',
+            isEqualTo: Timestamp.fromDate(
+              DateTime(2024, 7, 4, 20, 00),
+            ),
+          );
+      final documents = await colRef.get();
+      return documents.docs
+          .map(
+            (doc) => DbRecord(
+              id: doc.id,
+              data: doc.data(),
+            ),
+          )
+          .toList();
+    } catch (err) {
+      throw Exception('Error adding document $err');
+    }
+  }
+
   Future<List<DbRecord>> fetchAllFromBundle<T>({
     required String collection,
     required String bundleUrl,
