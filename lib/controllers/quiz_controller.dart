@@ -27,7 +27,7 @@ class QuizController extends GetxController {
   final List<int> answers = [];
 
   Future<void> loadData() async {
-    categoryRepo.createCategories('contest', dummyData[0].toMap());
+    //categoryRepo.createCategories('contest', dummyData[0].toMap());
     DateTime currentTime = await NTP.now();
     DateTime startTime, endTime;
     if (currentTime.hour <= 13 && currentTime.minute <= 11) {
