@@ -10,11 +10,13 @@ class AnimatedBtns extends StatefulWidget {
     required this.color,
     required this.text,
     required this.option,
+    required this.onTap,
   });
 
   final int option;
   final Color color;
   final String text;
+  final Function() onTap;
 
   @override
   State<AnimatedBtns> createState() => _AnimatedBtnsState();
@@ -30,10 +32,10 @@ class _AnimatedBtnsState extends State<AnimatedBtns> {
     setState(() {
       isTapped = true;
     });
-    controller.submitAns(widget.option);
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      controller.nextPage();
+      controller.submitAns(widget.option);
+      widget.onTap();
     });
   }
 

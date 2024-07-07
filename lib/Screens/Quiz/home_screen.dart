@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
+import 'package:play_dates/Utlis/Widgets/nav_bar.dart';
 import 'package:play_dates/controllers/quiz_controller.dart';
-import '../Utlis/Buttons/flat_btn.dart';
+import '../../Utlis/Buttons/flat_btn.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,13 +22,44 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   Color? color;
 
+  final homeNavKey = GlobalKey<NavigatorState>();
+  final searchNavKey = GlobalKey<NavigatorState>();
+  final notificationNavKey = GlobalKey<NavigatorState>();
+  final profileNavKey = GlobalKey<NavigatorState>();
+  int selectedTab = 0;
+  List<NavModel> items = [];
+
   @override
   void initState() {
     super.initState();
+    items = [
+      NavModel(
+        page: const HomeScreen(),
+        navKey: homeNavKey,
+      ),
+      NavModel(
+        page: const HomeScreen(),
+        navKey: searchNavKey,
+      ),
+      NavModel(
+        page: const HomeScreen(),
+        navKey: notificationNavKey,
+      ),
+      NavModel(
+        page: const HomeScreen(),
+        navKey: profileNavKey,
+      ),
+    ];
     start();
   }
 
   void start() async {
+    if (quizController.round != 1) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
     await quizController.loadData();
     setState(() {
       _isLoading = false;
@@ -75,29 +107,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Obx(
                         () => FlatBtn(
-                          onTap: !quizController.isQuiz.value
-                              ? null
-                              : () {
-                                  setState(() {
-                                    color = Colors.white;
-                                    _selected = true;
-                                  });
-                                  Future.delayed(
-                                    const Duration(milliseconds: 1000),
-                                    () {
-                                      setState(() {
-                                        color = Colors.white;
-                                        _selected = false;
-                                      });
-                                      Future.delayed(
-                                        const Duration(milliseconds: 1000),
-                                        () {
-                                          quizController.nextPage();
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
+                          onTap: () {
+                            //print(quizController.isQuiz.value);
+                            if (!quizController.isQuiz.value) return;
+                            setState(() {
+                              color = Colors.white;
+                              _selected = true;
+                            });
+                            Future.delayed(
+                              const Duration(milliseconds: 1000),
+                              () {
+                                setState(() {
+                                  color = Colors.white;
+                                  _selected = false;
+                                });
+                                Future.delayed(
+                                  const Duration(milliseconds: 1000),
+                                  () {
+                                    quizController.nextPage();
+                                  },
+                                );
+                              },
+                            );
+                          },
                           text: quizController.isQuiz.value
                               ? "Play Now"
                               : "${quizController.timeLeft}",
@@ -110,11 +142,43 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (round != 2) jokerImage(),
               ],
             ),
-      bottomNavigationBar: BottomNavigationBar(items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.add), label: "hello"),
-        BottomNavigationBarItem(icon: Icon(Icons.add), label: "hello"),
-        BottomNavigationBarItem(icon: Icon(Icons.add), label: "hello"),
-      ]),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(top: 20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FloatingActionButton.large(
+              onPressed: () {},
+              backgroundColor: const Color.fromARGB(255, 244, 215, 56),
+              shape: const CircleBorder(
+                side: BorderSide(
+                  color: Colors.black,
+                ),
+              ),
+              elevation: 10,
+              hoverColor: Colors.black,
+              hoverElevation: 20,
+              child: Image.asset(
+                'assets/play-icon.png',
+                fit: BoxFit.fill,
+                height: 24,
+              ),
+            ),
+            const SizedBox(
+              height: 2,
+            ),
+            const Text(
+              "Quests",
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w700,
+              ),
+            )
+          ],
+        ),
+      ),
+      bottomNavigationBar: NavBar(pageIndex: selectedTab, onTap: (index) {}),
     );
   }
 

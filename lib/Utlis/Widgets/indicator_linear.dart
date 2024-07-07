@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
@@ -25,7 +27,7 @@ class IndicatorLinear extends StatelessWidget {
       padding:
           padding ?? const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
       width: width ?? w,
-      percent: percent,
+      percent: min(percent, 1),
       barRadius: Radius.zero,
       animation: animation ?? true,
       lineHeight: 70.0,

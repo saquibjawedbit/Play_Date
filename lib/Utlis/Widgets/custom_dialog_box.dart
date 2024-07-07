@@ -1,13 +1,13 @@
-import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:play_dates/Screens/home_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
-import 'package:play_dates/Utlis/Paints/outlined_text.dart';
 
 class CustomDialogBox extends StatelessWidget {
-  const CustomDialogBox({super.key});
+  const CustomDialogBox(
+      {super.key, required this.content, required this.padding});
+
+  final Widget content;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +22,9 @@ class CustomDialogBox extends StatelessWidget {
           children: [
             Container(
               // margin: EdgeInsets.symmetric(horizontal: 0.01 * width),
-              padding: const EdgeInsets.only(
-                  top: 20, left: 44, right: 44, bottom: 30),
+              padding: padding,
+              width: width,
+
               decoration: BoxDecoration(
                 color: sandColor,
                 borderRadius: BorderRadius.circular(24),
@@ -35,27 +36,7 @@ class CustomDialogBox extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  OutlinedText(
-                    text: "Instructions",
-                    fontSize: min(34, 34.sp),
-                    textColor: Colors.white,
-                    borderColor: Colors.black,
-                    offset: const Offset(1, 4),
-                    letterSpacing: 0,
-                    strokeWidth: 2,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  const InfoBox(),
-                ],
-              ),
+              child: content,
             ),
             Positioned(
               top: -28,

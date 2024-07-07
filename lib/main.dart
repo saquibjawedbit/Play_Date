@@ -5,9 +5,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:play_dates/Screens/home_screen.dart';
+import 'package:play_dates/Screens/Onboarding/loading_screen.dart';
+import 'package:play_dates/Screens/Quiz/home_screen.dart';
 import 'package:play_dates/Screens/Onboarding/name_screen.dart';
 import 'package:play_dates/Screens/Onboarding/welcome_screen.dart';
+import 'package:play_dates/Screens/Quiz/match_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/Utlis/repo/db_manager.dart';
 import 'package:play_dates/firebase_options.dart';
@@ -78,8 +80,11 @@ class MyApp extends StatelessWidget {
                     .where("email", isEqualTo: snapshot.data!.email.toString())
                     .snapshots(),
                 builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data?.docs.length == 1) {
-                    return const HomeScreen();
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const LoadingScreen();
+                  } else if (snapshot.hasData &&
+                      snapshot.data?.docs.length == 1) {
+                    return const MatchScreen();
                   } else {
                     return NameScreen();
                   }

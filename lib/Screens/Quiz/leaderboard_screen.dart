@@ -4,7 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:play_dates/Screens/home_screen.dart';
+import 'package:play_dates/Screens/Quiz/home_screen.dart';
 
 class LeaderBoardScreen extends StatelessWidget {
   const LeaderBoardScreen({super.key});

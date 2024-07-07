@@ -1,4 +1,11 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:play_dates/Screens/Quiz/home_screen.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/main.dart';
 
@@ -51,5 +58,31 @@ class UserController extends GetxController {
         gender: gender,
         imageUrls: imageUrls);
     categoryRepo.createCategories('user', userModel.toMap());
+  }
+
+  void upload(List<XFile> selectedImage) async {
+    if (selectedImage.length != 4) return;
+
+    updateEmail(FirebaseAuth.instance.currentUser!.email.toString());
+    final List<String> imageUrls = [];
+    for (int index = 0; index < 4; index++) {
+      String uniqueName =
+          DateTime.now().microsecondsSinceEpoch.toString() + index.toString();
+      Reference referenceRoot = FirebaseStorage.instance.ref();
+      Reference referenceDirImages = referenceRoot.child('images');
+      Reference referenceImagetoUpload = referenceDirImages.child(uniqueName);
+      try {
+        await referenceImagetoUpload.putFile(File(selectedImage[index].path));
+        String url = await referenceImagetoUpload.getDownloadURL();
+        imageUrls.add(url);
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+    createUser(imageUrls);
+    Get.offAll(
+      () => const HomeScreen(),
+      transition: Transition.fade,
+    );
   }
 }
