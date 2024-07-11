@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:db_client/db_client.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:play_dates/Screens/Onboarding/loading_screen.dart';
-import 'package:play_dates/Screens/Quiz/home_screen.dart';
 import 'package:play_dates/Screens/Onboarding/name_screen.dart';
 import 'package:play_dates/Screens/Onboarding/welcome_screen.dart';
+import 'package:play_dates/Screens/Quiz/home_screen.dart';
 import 'package:play_dates/Screens/Quiz/match_screen.dart';
+import 'package:play_dates/Screens/profile/profile_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/Utlis/repo/db_manager.dart';
+import 'package:play_dates/controllers/user_controller.dart';
 import 'package:play_dates/firebase_options.dart';
 import 'dart:math';
 
@@ -21,13 +22,15 @@ final categoryRepo = DbManager(dbClient: dbClient);
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({
+  MyApp({
     super.key,
   });
+
+  final userController = Get.put(UserController());
 
   // This widget is the root of your application.
   @override
@@ -74,22 +77,15 @@ class MyApp extends StatelessWidget {
                 ),
               );
             } else if (snapshot.hasData == true) {
-              return StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection("user")
-                    .where("email", isEqualTo: snapshot.data!.email.toString())
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const LoadingScreen();
-                  } else if (snapshot.hasData &&
-                      snapshot.data?.docs.length == 1) {
-                    return const MatchScreen();
-                  } else {
-                    return NameScreen();
-                  }
-                },
-              );
+              return Obx(() {
+                if (userController.loading.value == true) {
+                  return const LoadingScreen();
+                } else if (userController.user != null) {
+                  return const ProfileScreen();
+                } else {
+                  return NameScreen();
+                }
+              });
             } else {
               return const WelcomeScreen();
             }

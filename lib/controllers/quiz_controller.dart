@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,7 +8,9 @@ import 'package:ntp/ntp.dart';
 import 'package:play_dates/Screens/Quiz/leaderboard_screen.dart';
 import 'package:play_dates/Screens/Quiz/quest_end_screen.dart';
 import 'package:play_dates/Screens/Quiz/quiz_screen.dart';
+import 'package:play_dates/Utlis/Models/participants_model.dart';
 import 'package:play_dates/Utlis/Models/quiz_model.dart';
+import 'package:play_dates/controllers/user_controller.dart';
 import 'package:play_dates/main.dart';
 
 class QuizController extends GetxController {
@@ -30,7 +33,9 @@ class QuizController extends GetxController {
   final timeLeft = '00:00'.obs;
   final question = "00/00".obs;
   final nextQTime = "00:00".obs;
-  final List<int> answers = [];
+  final List<List<int>> answers = [[], [], []];
+
+  final UserController controller = Get.find();
 
   Future<void> loadData() async {
     //categoryRepo.createCategories('contest', dummyData[0].toMap());
@@ -49,12 +54,12 @@ class QuizController extends GetxController {
           currentTime.year, currentTime.month, currentTime.day, 17, 55);
       endTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 17, 56);
-    } else if (currentTime.hour < 23 ||
-        (currentTime.hour == 23 && currentTime.minute <= 12)) {
+    } else if (currentTime.hour < 20 ||
+        (currentTime.hour == 20 && currentTime.minute <= 32)) {
       startTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 23, 11, 00);
+          currentTime.year, currentTime.month, currentTime.day, 20, 31, 00);
       endTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 23, 12, 00);
+          currentTime.year, currentTime.month, currentTime.day, 20, 32, 00);
     } else {
       startTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 13, 11);
@@ -66,10 +71,13 @@ class QuizController extends GetxController {
       debugPrint("Quiz started at $startTime, Round: $round");
       isQuiz.value = true;
       final models = await categoryRepo.fetchQuizModel(
-          startTime:
-              DateTime(currentTime.year, currentTime.month, currentTime.day));
+        startTime:
+            DateTime(currentTime.year, currentTime.month, currentTime.day),
+      );
       if (models.isNotEmpty) {
         quizModel = models[0];
+      } else {
+        debugPrint("Contest not loaded!");
       }
     } else {
       debugPrint("Next At $startTime");
@@ -79,6 +87,25 @@ class QuizController extends GetxController {
         nextQuiz = currentTime.difference(startTime).inSeconds;
       }
     }
+  }
+
+  void registerUser() async {
+    if (quizModel == null) return;
+    final id = controller.user!.id;
+    ParticipantModels model = ParticipantModels(
+      userRef: FirebaseFirestore.instance.collection('user').doc(id),
+      gender: 'M',
+      round1: answers[0],
+      round2: answers[1],
+      round3: answers[2],
+    );
+    categoryRepo.createParticpant(
+        'contest', quizModel!.id!, 'player', model.toMap());
+  }
+
+  void getLeaderBoard() async {
+    List<ParticipantModels> players =
+        await categoryRepo.fetchPlayers(id: quizModel!.id!);
   }
 
   void start() {
@@ -156,6 +183,7 @@ class QuizController extends GetxController {
     question.value = "${(currentQuestion + 1).toString().padLeft(2, '0')}/04";
     percent = (currentQuestion + 1) / 4;
     if (currentQuestion >= 4) {
+      if (round == 3) registerUser();
       _qTimer!.cancel();
       _timer!.cancel();
       _elapsedTimer(switchToLeaderBoard, 5);
@@ -188,7 +216,7 @@ class QuizController extends GetxController {
   }
 
   void submitAns(int option) {
-    answers.add(option);
+    answers[round - 1].add(option);
     if (currentQuestion == 3) nextPage();
   }
 

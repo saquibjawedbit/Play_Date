@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
+  final String? id;
   final String name;
   final String email;
   final double height;
@@ -10,6 +11,7 @@ class UserModel {
   final List<String> imageUrls;
 
   UserModel({
+    this.id,
     required this.name,
     required this.dob,
     required this.email,
@@ -21,12 +23,13 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json, {String? id}) {
     return UserModel(
+      id: id,
       name: json['name'],
       email: json['email'],
       height: json['height'],
       address: json['address'],
       gender: json['gender'],
-      imageUrls: json['imageUrls'],
+      imageUrls: List<String>.from(json['imageUrls']),
       dob: (json['dob'] as Timestamp).toDate(),
     );
   }

@@ -18,6 +18,23 @@ class UserController extends GetxController {
   DateTime dateTime = DateTime.now();
   // 1- Male, 0 -Female
   var gender = "male";
+  var loading = true.obs;
+
+  UserModel? user;
+
+  void getUser() async {
+    String email = FirebaseAuth.instance.currentUser!.email.toString();
+    List<UserModel> data = await categoryRepo.fetchUser(email: email);
+    if (data.isNotEmpty) print(data[0].id);
+    user = data[0];
+    loading.value = false;
+  }
+
+  @override
+  void onInit() {
+    getUser();
+    super.onInit();
+  }
 
   void updateGender(bool male) {
     if (!male) gender = "female";

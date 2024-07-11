@@ -21,6 +21,24 @@ class DbClient {
     }
   }
 
+  Future<String> addInCollection({
+    required String collection,
+    required String id,
+    required String nextCollection,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final docRef = await _firestore
+          .collection(collection)
+          .doc(id)
+          .collection(nextCollection)
+          .add(data);
+      return docRef.id;
+    } catch (err) {
+      throw Exception('Error adding document $err');
+    }
+  }
+
   Future<List<DbRecord>> fetchAll({
     required String collection,
   }) async {
@@ -40,14 +58,37 @@ class DbClient {
     }
   }
 
-  Future<List<DbRecord>> fetchOnly(
-      {required String collection, required DateTime startTime}) async {
+  Future<List<DbRecord>> fetchPlayers({
+    required String collection,
+    required String id,
+    required String collection2,
+  }) async {
+    try {
+      final colRef =
+          _firestore.collection(collection).doc(id).collection(collection2);
+      final documents = await colRef.get();
+      return documents.docs
+          .map(
+            (doc) => DbRecord(
+              id: doc.id,
+              data: doc.data(),
+            ),
+          )
+          .toList();
+    } catch (err) {
+      throw Exception('Error adding document $err');
+    }
+  }
+
+  Future<List<DbRecord>> fetchOnly({
+    required String collection,
+    required String field,
+    required dynamic startTime,
+  }) async {
     try {
       final colRef = _firestore.collection(collection).where(
-            'startTime',
-            isEqualTo: Timestamp.fromDate(
-              startTime,
-            ),
+            field,
+            isEqualTo: startTime,
           );
       final documents = await colRef.get();
       return documents.docs

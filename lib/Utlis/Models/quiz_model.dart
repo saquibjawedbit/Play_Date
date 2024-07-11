@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class QuizModel {
+  final String? id;
   final Timestamp startTime;
   final Timestamp endTime;
   final List<Map> round1;
@@ -8,6 +9,7 @@ class QuizModel {
   final List<Map> round3;
 
   const QuizModel({
+    this.id,
     required this.startTime,
     required this.endTime,
     required this.round1,
@@ -17,6 +19,7 @@ class QuizModel {
 
   factory QuizModel.fromJson(Map<String, dynamic> json, {String? id}) {
     return QuizModel(
+      id: id,
       startTime: json['startTime'],
       endTime: json['endTime'],
       round1: (json['round1'] as List<dynamic>)
@@ -45,10 +48,10 @@ class QuizModel {
 final dummyData = [
   QuizModel(
     startTime: Timestamp.fromDate(
-      DateTime(2024, 07, 07),
+      DateTime(2024, 07, 09),
     ),
     endTime: Timestamp.fromDate(
-      DateTime(2024, 07, 07),
+      DateTime(2024, 07, 09),
     ),
     round1: [
       const QuizData(
