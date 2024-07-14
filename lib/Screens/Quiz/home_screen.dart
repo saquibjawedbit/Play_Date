@@ -3,9 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:play_dates/Screens/Chat/inbox_screen.dart';
+import 'package:play_dates/Screens/profile/profile_screen.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
 import 'package:play_dates/Utlis/Widgets/nav_bar.dart';
 import 'package:play_dates/controllers/quiz_controller.dart';
+import 'package:play_dates/controllers/user_controller.dart';
 import '../../Utlis/Buttons/flat_btn.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final QuizController quizController = Get.put(QuizController());
+  final UserController userController = Get.find();
 
   bool _selected = false;
   bool _isLoading = true;
@@ -32,24 +36,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    items = [
-      NavModel(
-        page: const HomeScreen(),
-        navKey: homeNavKey,
-      ),
-      NavModel(
-        page: const HomeScreen(),
-        navKey: searchNavKey,
-      ),
-      NavModel(
-        page: const HomeScreen(),
-        navKey: notificationNavKey,
-      ),
-      NavModel(
-        page: const HomeScreen(),
-        navKey: profileNavKey,
-      ),
-    ];
+    // items = [
+    //   NavModel(
+    //     page: const HomeScreen(),
+    //     navKey: homeNavKey,
+    //   ),
+    //   NavModel(
+    //     page: const HomeScreen(),
+    //     navKey: searchNavKey,
+    //   ),
+    //   NavModel(
+    //     page: const HomeScreen(),
+    //     navKey: notificationNavKey,
+    //   ),
+    //   NavModel(
+    //     page: const HomeScreen(),
+    //     navKey: profileNavKey,
+    //   ),
+    // ];
     start();
   }
 
@@ -78,8 +82,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const Center(child: CircularProgressIndicator.adaptive())
           : Stack(
               children: [
-                if (round != 2) bannerOne(height, width),
-                if (round == 2) lionImage(),
+                if (round != 2) _bannerOne(height, width),
+                if (round == 2) _lionImage(),
                 Padding(
                   padding: EdgeInsets.only(top: 120.h, left: 32.w, right: 32.w),
                   child: Column(
@@ -139,50 +143,76 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                if (round != 2) jokerImage(),
+                if (round != 2) _jokerImage(),
               ],
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            FloatingActionButton.large(
-              onPressed: () {},
-              backgroundColor: const Color.fromARGB(255, 244, 215, 56),
-              shape: const CircleBorder(
-                side: BorderSide(
-                  color: Colors.black,
-                ),
-              ),
-              elevation: 10,
-              hoverColor: Colors.black,
-              hoverElevation: 20,
-              child: Image.asset(
-                'assets/play-icon.png',
-                fit: BoxFit.fill,
-                height: 24,
-              ),
-            ),
-            const SizedBox(
-              height: 2,
-            ),
-            const Text(
-              "Quests",
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w700,
-              ),
-            )
-          ],
-        ),
-      ),
-      bottomNavigationBar: NavBar(pageIndex: selectedTab, onTap: (index) {}),
+      floatingActionButton: _floatActionBtn(),
+      bottomNavigationBar: _navBar(),
     );
   }
 
-  AnimatedPositioned jokerImage() {
+  NavBar _navBar() {
+    return NavBar(
+      pageIndex: selectedTab,
+      onTap: (index) {
+        if (index == 1) {
+          Get.to(
+            () => const ProfileScreen(),
+          );
+        }
+        if (index == 2) {
+          Get.to(
+            () => InboxScreen(
+              name: userController.user!.name,
+              contacts: userController.contacts ?? [],
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Padding _floatActionBtn() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.large(
+            onPressed: () {},
+            backgroundColor: const Color.fromARGB(255, 244, 215, 56),
+            shape: const CircleBorder(
+              side: BorderSide(
+                color: Colors.black,
+              ),
+            ),
+            elevation: 10,
+            hoverColor: Colors.black,
+            hoverElevation: 20,
+            child: Image.asset(
+              'assets/play-icon.png',
+              fit: BoxFit.fill,
+              height: min(24, 24.h),
+            ),
+          ),
+          SizedBox(
+            height: min(2, 2.h),
+          ),
+          Text(
+            "Quests",
+            style: TextStyle(
+              fontSize: min(14, 14.sp),
+              color: Colors.black,
+              fontWeight: FontWeight.w700,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  AnimatedPositioned _jokerImage() {
     return AnimatedPositioned(
       left: _selected ? 80 : -20,
       top: -10,
@@ -195,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Align lionImage() {
+  Align _lionImage() {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Image.asset(
@@ -206,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  AnimatedPositioned bannerOne(double height, double width) {
+  AnimatedPositioned _bannerOne(double height, double width) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 400),
       top: _selected ? height - 380.h : height - 400.h,

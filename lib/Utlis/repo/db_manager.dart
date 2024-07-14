@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:db_client/db_client.dart';
+import 'package:hive/hive.dart';
+import 'package:play_dates/Utlis/Models/contact_model.dart';
 import 'package:play_dates/Utlis/Models/participants_model.dart';
 import 'package:play_dates/Utlis/Models/quiz_model.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
@@ -72,7 +74,7 @@ class DbManager {
     }
   }
 
-  Future<List<ParticipantModels>> fetchPlayers({required String id}) async {
+  Future<List<ParticipantModel>> fetchPlayers({required String id}) async {
     try {
       final categoriesData = await dbClient.fetchPlayers(
         collection: 'contest',
@@ -80,8 +82,8 @@ class DbManager {
         collection2: 'players',
       );
       final categories = categoriesData
-          .map<ParticipantModels>(
-            (categoryData) => ParticipantModels.fromJson(
+          .map<ParticipantModel>(
+            (categoryData) => ParticipantModel.fromJson(
               id: categoryData.id,
               categoryData.data,
             ),
@@ -93,10 +95,43 @@ class DbManager {
     }
   }
 
-  Future<void> createCategories(
-      String collection, Map<String, dynamic> data) async {
+  Future<void> cacheContacts(List<ContactModel> contacts) async {
+    var box = await Hive.openBox('contactsBox');
+    await box.put(
+        'contacts', contacts.map((contact) => contact.toMap()).toList());
+  }
+
+  Future<List<ContactModel>> getCachedContacts() async {
+    var box = await Hive.openBox('contactsBox');
+    List<Map<String, dynamic>> cachedContacts =
+        box.get('contacts', defaultValue: []);
+    return cachedContacts
+        .map((contact) => ContactModel.fromJson(contact))
+        .toList();
+  }
+
+  Future<List<ContactModel>> fetchContacts({required String id}) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(id)
+        .collection('contacts')
+        .get();
+
+    List<ContactModel> contacts = querySnapshot.docs.map(
+      (doc) {
+        return ContactModel.fromDocument(doc, doc.id);
+      },
+    ).toList();
+
+    //cacheContacts(contacts);
+
+    return contacts;
+  }
+
+  Future<void> createUser(
+      String collection, Map<String, dynamic> data, String id) async {
     try {
-      await dbClient.add(collection: collection, data: data);
+      await dbClient.add(collection: collection, data: data, id: id);
     } catch (err) {
       throw Exception('Failed to create the categories $err');
     }

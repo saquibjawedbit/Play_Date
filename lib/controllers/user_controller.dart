@@ -1,11 +1,11 @@
 import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:play_dates/Screens/Quiz/home_screen.dart';
+import 'package:play_dates/Utlis/Models/contact_model.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/main.dart';
 
@@ -21,19 +21,23 @@ class UserController extends GetxController {
   var loading = true.obs;
 
   UserModel? user;
+  List<ContactModel>? contacts;
+
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   void getUser() async {
     String email = FirebaseAuth.instance.currentUser!.email.toString();
     List<UserModel> data = await categoryRepo.fetchUser(email: email);
-    if (data.isNotEmpty) print(data[0].id);
-    user = data[0];
+    if (data.isNotEmpty) user = data[0];
     loading.value = false;
+    if (user != null) getContacts();
   }
 
-  @override
-  void onInit() {
-    getUser();
-    super.onInit();
+  void getContacts() async {
+    contacts = await categoryRepo.fetchContacts(
+      id: user!.id!,
+    );
+    //print(contacts);
   }
 
   void updateGender(bool male) {
@@ -66,15 +70,22 @@ class UserController extends GetxController {
   }
 
   void createUser(List<String> imageUrls) {
+    String uid = _firebaseAuth.currentUser!.uid;
     UserModel userModel = UserModel(
-        name: name,
-        dob: dateTime,
-        email: email,
-        height: height,
-        address: address,
-        gender: gender,
-        imageUrls: imageUrls);
-    categoryRepo.createCategories('user', userModel.toMap());
+      name: name,
+      dob: dateTime,
+      email: email,
+      height: height,
+      address: address,
+      gender: gender,
+      imageUrls: imageUrls,
+    );
+    categoryRepo.createUser(
+      'user',
+      userModel.toMap(),
+      uid,
+    );
+    getUser();
   }
 
   void upload(List<XFile> selectedImage) async {

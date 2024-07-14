@@ -8,8 +8,6 @@ import 'package:play_dates/Screens/Onboarding/loading_screen.dart';
 import 'package:play_dates/Screens/Onboarding/name_screen.dart';
 import 'package:play_dates/Screens/Onboarding/welcome_screen.dart';
 import 'package:play_dates/Screens/Quiz/home_screen.dart';
-import 'package:play_dates/Screens/Quiz/match_screen.dart';
-import 'package:play_dates/Screens/profile/profile_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/Utlis/repo/db_manager.dart';
 import 'package:play_dates/controllers/user_controller.dart';
@@ -30,7 +28,7 @@ class MyApp extends StatelessWidget {
     super.key,
   });
 
-  final userController = Get.put(UserController());
+  final UserController userController = Get.put(UserController());
 
   // This widget is the root of your application.
   @override
@@ -77,11 +75,12 @@ class MyApp extends StatelessWidget {
                 ),
               );
             } else if (snapshot.hasData == true) {
+              userController.getUser();
               return Obx(() {
                 if (userController.loading.value == true) {
                   return const LoadingScreen();
                 } else if (userController.user != null) {
-                  return const ProfileScreen();
+                  return const HomeScreen();
                 } else {
                   return NameScreen();
                 }

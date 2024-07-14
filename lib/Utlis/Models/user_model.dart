@@ -45,4 +45,12 @@ class UserModel {
       'dob': Timestamp.fromDate(dob),
     };
   }
+
+  int get age {
+    DateTime date = DateTime.now();
+    int ageDiff = (date.year - dob.year);
+    int delta = ((date.month <= dob.month && date.day < dob.day) ? 1 : 0);
+
+    return (ageDiff - delta);
+  }
 }

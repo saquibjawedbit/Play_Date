@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ntp/ntp.dart';
@@ -92,7 +91,7 @@ class QuizController extends GetxController {
   void registerUser() async {
     if (quizModel == null) return;
     final id = controller.user!.id;
-    ParticipantModels model = ParticipantModels(
+    ParticipantModel model = ParticipantModel(
       userRef: FirebaseFirestore.instance.collection('user').doc(id),
       gender: 'M',
       round1: answers[0],
@@ -104,7 +103,7 @@ class QuizController extends GetxController {
   }
 
   void getLeaderBoard() async {
-    List<ParticipantModels> players =
+    List<ParticipantModel> players =
         await categoryRepo.fetchPlayers(id: quizModel!.id!);
   }
 

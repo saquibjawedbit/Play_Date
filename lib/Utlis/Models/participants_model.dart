@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ParticipantModels {
+class ParticipantModel {
   final DocumentReference userRef;
   final String gender;
   final List<int> round1;
   final List<int> round2;
   final List<int> round3;
 
-  const ParticipantModels({
+  const ParticipantModel({
     required this.userRef,
     required this.gender,
     required this.round1,
@@ -25,8 +25,8 @@ class ParticipantModels {
     };
   }
 
-  factory ParticipantModels.fromJson(Map<String, dynamic> json, {String? id}) {
-    return ParticipantModels(
+  factory ParticipantModel.fromJson(Map<String, dynamic> json, {String? id}) {
+    return ParticipantModel(
       userRef: json['endTime'],
       gender: json['gender'],
       round1: json['round1'] as List<int>,

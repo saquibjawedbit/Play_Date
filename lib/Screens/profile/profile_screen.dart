@@ -1,14 +1,13 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:play_dates/Screens/Quiz/match_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
+import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
-
-const List<String> imageUrl = [
-  "https://images.unsplash.com/photo-1718963892270-04300c864522?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80',
-  'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80',
-  'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80',
-];
+import 'package:play_dates/controllers/user_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,8 +19,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   int index = 0;
 
+  final UserController controller = Get.find();
+
   @override
   Widget build(BuildContext context) {
+    final user = controller.user;
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 251, 255, 204),
@@ -38,52 +40,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const AppTitle(),
-                  const SizedBox(
-                    height: 20,
+                  SizedBox(
+                    height: min(20, 20.h),
                   ),
                   Stack(
                     children: [
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(
-                            width: 36,
+                          SizedBox(
+                            width: min(36, 36.w),
                           ),
                           GestureDetector(
                             onTap: () {
-                              setState(() {
-                                index = (index + 1) % 4;
-                              });
+                              setState(
+                                () {
+                                  index = (index + 1) % 4;
+                                },
+                              );
                             },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeInOut,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                image: DecorationImage(
-                                  image: NetworkImage(
-                                    imageUrl[index],
-                                  ),
-                                  fit: BoxFit.fill,
-                                ),
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: 3,
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black,
-                                    spreadRadius: 0.5,
-                                    offset: Offset(13, 13),
-                                  )
-                                ],
-                              ),
-                              height: 450,
-                              width: 320,
-                            ),
+                            child: _profileContainer(user),
                           ),
-                          const SizedBox(
-                            width: 36,
+                          SizedBox(
+                            width: min(36, 36.w),
                           ),
                         ],
                       ),
@@ -96,8 +75,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Container(
                                 margin:
                                     const EdgeInsets.symmetric(horizontal: 6),
-                                width: 56,
-                                height: 4,
+                                width: min(56, 56.h),
+                                height: min(4, 4.h),
                                 decoration: BoxDecoration(
                                   color: (i == index)
                                       ? Colors.black
@@ -108,38 +87,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                       ),
-                      const Positioned(
+                      Positioned(
                         bottom: 80,
                         left: 60,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             OutlinedText(
-                              text: "Alice,",
-                              fontSize: 48,
+                              text: "${user!.name},",
+                              fontSize: min(48, 48.sp),
                               textColor: Colors.white,
                               borderColor: Colors.black,
-                              offset: Offset(-5, 5),
+                              offset: const Offset(-5, 5),
                             ),
                             SizedBox(
-                              width: 10,
+                              width: min(10, 10.w),
                             ),
                             OutlinedText(
-                              text: "25",
-                              fontSize: 48,
-                              textColor: Color.fromARGB(255, 250, 255, 0),
+                              text: "${user.age}",
+                              fontSize: min(48, 48.sp),
+                              textColor: const Color.fromARGB(255, 250, 255, 0),
                               borderColor: Colors.black,
-                              offset: Offset(-5, 5),
+                              offset: const Offset(-5, 5),
                             ),
                           ],
                         ),
                       ),
-                      const Positioned(
+                      Positioned(
                         bottom: 48,
                         left: 60,
                         child: OutlinedText(
                           text: "Student.",
-                          fontSize: 36,
+                          fontSize: min(36, 36.sp),
                           textColor: Colors.white,
                           borderColor: Colors.black,
                           offset: Offset(-5, 5),
@@ -157,8 +136,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         bottom: 0,
                         right: 0,
                         child: SizedBox(
-                          height: 120,
-                          width: 120,
+                          height: min(120, 120.h),
+                          width: min(120, 120.w),
                           child: Stack(
                             children: [
                               Image.asset(
@@ -186,8 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 20,
+                  SizedBox(
+                    height: min(20, 20.h),
                   ),
                   statBar()
                 ],
@@ -199,6 +178,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  AnimatedContainer _profileContainer(UserModel? user) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        image: DecorationImage(
+          image: NetworkImage(
+            user!.imageUrls[index],
+          ),
+          fit: BoxFit.fill,
+        ),
+        border: Border.all(
+          color: Colors.black,
+          width: 3,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            spreadRadius: 0.5,
+            offset: Offset(13, 13),
+          )
+        ],
+      ),
+      height: min(450, 450.h),
+      width: min(320, 320.h),
+    );
+  }
+
   Stack statBar() {
     return Stack(
       fit: StackFit.loose,
@@ -206,12 +214,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(
-              height: 32,
+            SizedBox(
+              height: min(32, 32.h),
             ),
             Center(
               child: Container(
-                width: 350,
+                width: min(350, 350.w),
                 decoration: BoxDecoration(
                   color: bColor,
                   borderRadius: BorderRadius.circular(30),
@@ -225,15 +233,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Image.asset(
                           'assets/green_diamond.png',
-                          height: 24,
+                          height: min(24, 24.h),
                           fit: BoxFit.fill,
                         ),
-                        const Text(
+                        Text(
                           "You performed in 2 quests today",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                            fontSize: min(16, 16.sp),
                           ),
                         ),
                       ],
@@ -242,21 +250,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Image.asset(
                           'assets/green_diamond.png',
-                          height: 24,
+                          height: min(24, 24.sp),
                           fit: BoxFit.fill,
                         ),
-                        const Text(
+                        Text(
                           "You have 3 matches we are proud!",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                            fontSize: min(16, 16.sp),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 10,
+                    SizedBox(
+                      height: min(10, 10.h),
                     ),
                   ],
                 ),
@@ -264,14 +272,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
-        const Align(
+        Align(
           alignment: Alignment.topCenter,
           child: OutlinedText(
             text: "Stats",
-            fontSize: 40,
-            textColor: Color.fromARGB(255, 255, 255, 0),
+            fontSize: min(40, 40.sp),
+            textColor: const Color.fromARGB(255, 255, 255, 0),
             borderColor: Colors.black,
-            offset: Offset(-5, 5),
+            offset: const Offset(-5, 5),
           ),
         ),
         Positioned(

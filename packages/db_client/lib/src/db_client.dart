@@ -12,10 +12,11 @@ class DbClient {
   Future<String> add({
     required String collection,
     required Map<String, dynamic> data,
+    required String id,
   }) async {
     try {
-      final docRef = await _firestore.collection(collection).add(data);
-      return docRef.id;
+      await _firestore.collection(collection).doc(id).set(data);
+      return id;
     } catch (err) {
       throw Exception('Error adding document $err');
     }
@@ -86,10 +87,13 @@ class DbClient {
     required dynamic startTime,
   }) async {
     try {
-      final colRef = _firestore.collection(collection).where(
+      final colRef = _firestore
+          .collection(collection)
+          .where(
             field,
             isEqualTo: startTime,
-          );
+          )
+          .limit(1);
       final documents = await colRef.get();
       return documents.docs
           .map(

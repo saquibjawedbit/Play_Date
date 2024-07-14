@@ -55,6 +55,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   ntp: ^2.0.0
   carousel_slider: ^4.2.1
+  hive: ^2.2.3
 
 dev_dependencies:
   flutter_test:

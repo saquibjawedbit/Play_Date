@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class NavBar extends StatelessWidget {
   final int pageIndex;
@@ -17,7 +20,7 @@ class NavBar extends StatelessWidget {
       padding: const EdgeInsets.all(0),
       child: ClipRRect(
         child: Container(
-          height: 60,
+          height: min(60, 60.h),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -33,23 +36,27 @@ class NavBar extends StatelessWidget {
           child: Row(
             children: [
               navItem(
-                Icons.home_outlined,
+                "assets/profile_icon.png",
+                "item 1",
                 pageIndex == 0,
                 onTap: () => onTap(0),
               ),
               navItem(
-                Icons.message_outlined,
+                "assets/profile_icon.png",
+                "profile",
                 pageIndex == 1,
                 onTap: () => onTap(1),
               ),
-              const SizedBox(width: 80),
+              SizedBox(width: min(80, 80.w)),
               navItem(
-                Icons.notifications_none_outlined,
+                "assets/chat_icon.png",
+                "chat",
                 pageIndex == 2,
                 onTap: () => onTap(2),
               ),
               navItem(
-                Icons.person_outline,
+                "assets/chat_icon.png",
+                "item 4",
                 pageIndex == 3,
                 onTap: () => onTap(3),
               ),
@@ -60,13 +67,32 @@ class NavBar extends StatelessWidget {
     );
   }
 
-  Widget navItem(IconData icon, bool selected, {Function()? onTap}) {
+  Widget navItem(String imagePath, String label, bool selected,
+      {Function()? onTap}) {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        child: Icon(
-          icon,
-          color: Colors.black,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              imagePath,
+              color: Colors.black,
+              fit: BoxFit.contain,
+              height: min(24, 24.h),
+            ),
+            SizedBox(
+              height: min(4, 4.h),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: min(14, 14.sp),
+                color: Colors.black,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );

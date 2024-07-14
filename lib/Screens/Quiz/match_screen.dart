@@ -71,8 +71,8 @@ class MatchScreen extends StatelessWidget {
                           height: min(200, 200.h),
                           fit: BoxFit.cover,
                         ),
-                        const SizedBox(
-                          height: 10,
+                        SizedBox(
+                          height: min(10, 10.h),
                         ),
                         Text(
                           "But your match might be just around the corner",
@@ -142,14 +142,14 @@ class MatchScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               profileImage(),
-              const SizedBox(
-                height: 10,
+              SizedBox(
+                height: min(10, 10.h),
               ),
-              const Text(
+              Text(
                 "Hank",
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 32,
+                  fontSize: min(32, 32.sp),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -163,16 +163,16 @@ class MatchScreen extends StatelessWidget {
           alignment: Alignment.bottomRight,
           child: Column(
             children: [
-              const Text(
+              Text(
                 "Natie",
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 32,
+                  fontSize: min(32, 32.sp),
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(
-                height: 10,
+              SizedBox(
+                height: min(10, 10.h),
               ),
               profileImage(),
             ],
@@ -193,10 +193,10 @@ class MatchScreen extends StatelessWidget {
           borderColor: Colors.black,
           offset: const Offset(2, 5),
         ),
-        const SizedBox(
-          height: 20,
+        SizedBox(
+          height: min(20, 20.h),
         ),
-        const Row(
+        Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
@@ -204,12 +204,12 @@ class MatchScreen extends StatelessWidget {
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w700,
-                fontSize: 20,
+                fontSize: min(20, 20.sp),
               ),
             ),
             SizedBox(
-              width: 150,
-              child: FittedBox(
+              width: min(150, 150.w),
+              child: const FittedBox(
                 child: AppTitle(),
               ),
             ),
@@ -218,12 +218,12 @@ class MatchScreen extends StatelessWidget {
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w700,
-                fontSize: 20,
+                fontSize: min(20, 20.sp),
               ),
             ),
           ],
         ),
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Text(
@@ -231,7 +231,7 @@ class MatchScreen extends StatelessWidget {
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w700,
-                fontSize: 20,
+                fontSize: min(20, 20.sp),
               ),
             ),
             Text(
@@ -239,7 +239,7 @@ class MatchScreen extends StatelessWidget {
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
-                fontSize: 36,
+                fontSize: min(36, 36.sp),
               ),
             ),
           ],
