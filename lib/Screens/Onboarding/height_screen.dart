@@ -28,7 +28,7 @@ class HeightScreen extends StatelessWidget {
             if (!height.text.isNumericOnly) return;
             userController.updateHeight(height.text);
             Get.offAll(
-              () => AddressScreen(),
+              () => const AddressScreen(),
               transition: Transition.rightToLeft,
             );
           },

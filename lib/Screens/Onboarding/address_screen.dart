@@ -1,19 +1,32 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:play_dates/Screens/Onboarding/image_picker_screen.dart';
-import 'package:play_dates/Utlis/Inputs/custom_text_field.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/controllers/user_controller.dart';
 
 import '../../Utlis/Widgets/indicator_linear.dart';
 
-class AddressScreen extends StatelessWidget {
-  AddressScreen({
+class AddressScreen extends StatefulWidget {
+  const AddressScreen({
     super.key,
   });
 
+  @override
+  State<AddressScreen> createState() => _AddressScreenState();
+}
+
+class _AddressScreenState extends State<AddressScreen> {
   final UserController userController = Get.find();
-  final TextEditingController address = TextEditingController();
+  final List<String> _dropdownMenuItems = [
+    "LNMIIT, Jaipur, Rajasthan",
+    "BIT MESRA, Ranchi, Jharkhand",
+    "IIT Roorkee, Roorkee, Uttarakhand"
+  ];
+
+  String? _selectedValues;
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +38,8 @@ class AddressScreen extends StatelessWidget {
           backgroundColor: sbColor,
           shape: const CircleBorder(),
           onPressed: () {
-            if (address.text.isEmpty) return;
-            userController.updateAddress(address.text);
+            if (_selectedValues == null) return;
+            userController.updateAddress(_selectedValues!);
             Get.offAll(
               () => const ImagePickerScreen(),
               transition: Transition.rightToLeft,
@@ -69,16 +82,44 @@ class AddressScreen extends StatelessWidget {
                   const SizedBox(
                     height: 10,
                   ),
-                  CustomTextField(
-                    controller: address,
-                    //onComplete: () {},
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 14,
-                      horizontal: 18,
+                  SizedBox(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedValues,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 24,
+                        ),
+                        hintText: "Select Your University",
+                        hintStyle: const TextStyle(
+                          color: Color.fromARGB(255, 51, 51, 51),
+                          fontSize: 14,
+                        ),
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        fillColor: Colors.white,
+                      ),
+                      items: _dropdownMenuItems.map((String item) {
+                        return DropdownMenuItem<String>(
+                          value: item,
+                          child: Text(
+                            item,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: min(18, 18.sp),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedValues = newValue!;
+                        });
+                      },
                     ),
-                    keyboardType: TextInputType.streetAddress,
-                    fontSize: 24,
-                    hintText: "",
                   ),
                 ],
               ),

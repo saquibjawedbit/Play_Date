@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:play_dates/Screens/Onboarding/loading_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'dart:io';
 import 'package:play_dates/Utlis/Widgets/indicator_linear.dart';
@@ -21,11 +20,6 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
 
   void uploadImage() async {
     userController.upload(_selectedImage);
-    Get.offAll(
-      () => const LoadingScreen(),
-      transition: Transition.fade,
-      duration: const Duration(seconds: 1),
-    );
   }
 
   @override

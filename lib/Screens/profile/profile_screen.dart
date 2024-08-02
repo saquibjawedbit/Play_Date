@@ -1,13 +1,17 @@
 import 'dart:math';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:play_dates/Screens/Profile/profile_setting_screen.dart';
 import 'package:play_dates/Screens/Quiz/match_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
+import 'package:play_dates/controllers/service/cache_manager.dart';
 import 'package:play_dates/controllers/user_controller.dart';
+
+import '../../Utlis/Paints/profile_painter.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -88,40 +92,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       Positioned(
-                        bottom: 80,
+                        bottom: 100,
                         left: 60,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            OutlinedText(
-                              text: "${user!.name},",
-                              fontSize: min(48, 48.sp),
+                        child: SizedBox(
+                          width: min(200, 200.w),
+                          child: FittedBox(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                OutlinedText(
+                                  text: "${user!.name},",
+                                  fontSize: min(48, 48.sp),
+                                  textColor: Colors.white,
+                                  borderColor: Colors.black,
+                                  offset: const Offset(-5, 5),
+                                ),
+                                SizedBox(
+                                  width: min(10, 10.w),
+                                ),
+                                OutlinedText(
+                                  text: "${user.age}",
+                                  fontSize: min(48, 48.sp),
+                                  textColor:
+                                      const Color.fromARGB(255, 250, 255, 0),
+                                  borderColor: Colors.black,
+                                  offset: const Offset(-5, 5),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 70,
+                        left: 60,
+                        child: SizedBox(
+                          width: min(120, 120.w),
+                          child: FittedBox(
+                            child: OutlinedText(
+                              text: "Student.",
+                              fontSize: min(36, 36.sp),
                               textColor: Colors.white,
                               borderColor: Colors.black,
                               offset: const Offset(-5, 5),
                             ),
-                            SizedBox(
-                              width: min(10, 10.w),
-                            ),
-                            OutlinedText(
-                              text: "${user.age}",
-                              fontSize: min(48, 48.sp),
-                              textColor: const Color.fromARGB(255, 250, 255, 0),
-                              borderColor: Colors.black,
-                              offset: const Offset(-5, 5),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 48,
-                        left: 60,
-                        child: OutlinedText(
-                          text: "Student.",
-                          fontSize: min(36, 36.sp),
-                          textColor: Colors.white,
-                          borderColor: Colors.black,
-                          offset: const Offset(-5, 5),
+                          ),
                         ),
                       ),
                       Positioned(
@@ -135,31 +150,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Positioned(
                         bottom: 0,
                         right: 0,
-                        child: SizedBox(
-                          height: min(120, 120.h),
-                          width: min(120, 120.w),
-                          child: Stack(
-                            children: [
-                              Image.asset(
-                                'assets/Side_btn.png',
-                              ),
-                              const Align(
-                                alignment: Alignment(0.26, 0.26),
-                                child: Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color: Colors.black,
-                                  size: 80,
+                        child: GestureDetector(
+                          onTap: () {
+                            Get.off(() => const ProfileSettingScreen(),
+                                transition: Transition.rightToLeft);
+                          },
+                          child: SizedBox(
+                            height: min(120, 120.h),
+                            width: min(120, 120.w),
+                            child: Stack(
+                              children: [
+                                Image.asset(
+                                  'assets/Side_btn.png',
                                 ),
-                              ),
-                              const Align(
-                                alignment: Alignment.center,
-                                child: Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color: Colors.white,
-                                  size: 80,
+                                const Align(
+                                  alignment: Alignment(0.26, 0.26),
+                                  child: Icon(
+                                    Icons.arrow_forward_rounded,
+                                    color: Colors.black,
+                                    size: 80,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const Align(
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.arrow_forward_rounded,
+                                    color: Colors.white,
+                                    size: 80,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -185,8 +206,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
         image: DecorationImage(
-          image: NetworkImage(
+          image: CachedNetworkImageProvider(
             user!.imageUrls[index],
+            cacheManager: CustomCacheManager.instance,
           ),
           fit: BoxFit.fill,
         ),
@@ -292,35 +314,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ],
     );
-  }
-}
-
-class ProfilePainter extends CustomPainter {
-  ProfilePainter({super.repaint});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var paint = Paint()
-      ..color = bColor
-      ..strokeWidth = 1.5;
-
-    Offset start = Offset(size.width / 4, 0);
-    Offset end = Offset(size.width / 4, size.height);
-
-    canvas.drawLine(start, end, paint);
-    canvas.drawLine(
-        Offset(size.width / 2, 0), Offset(size.width / 2, size.height), paint);
-    canvas.drawLine(Offset(3 * size.width / 4, 0),
-        Offset(3 * size.width / 4, size.height), paint);
-
-    for (int i = 1; i <= 6; i++) {
-      canvas.drawLine(Offset(0, i * size.height / 7),
-          Offset(size.width, i * size.height / 7), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }

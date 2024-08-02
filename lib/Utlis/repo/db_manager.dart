@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:db_client/db_client.dart';
 import 'package:hive/hive.dart';
 import 'package:play_dates/Utlis/Models/contact_model.dart';
-import 'package:play_dates/Utlis/Models/participants_model.dart';
 import 'package:play_dates/Utlis/Models/quiz_model.dart';
+import 'package:play_dates/Utlis/Models/result_model.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
 
 class DbManager {
@@ -46,7 +46,7 @@ class DbManager {
         .set({'isOnline': isActive}, SetOptions(merge: true));
   }
 
-  Future<List<QuizModel>> fetchQuizModel({required DateTime startTime}) async {
+  Future<List<QuizModel>> fetch({required DateTime startTime}) async {
     try {
       final categoriesData = await dbClient.fetchOnly(
         collection: 'contest',
@@ -69,44 +69,52 @@ class DbManager {
     }
   }
 
-  Future<UserModel?> fetchUser({required String email}) async {
+  Future<UserModel?> fetchUser({required String id}) async {
     try {
-      final categoriesData = await dbClient.fetchOnly(
+      final categoriesData = await dbClient.fetchById(
         collection: 'user',
-        field: 'email',
-        startTime: email,
+        id: id,
       );
-      final categories = categoriesData
-          .map<UserModel>(
-            (categoryData) => UserModel.fromJson(
-              id: categoryData.id,
-              categoryData.data,
-            ),
-          )
-          .toList();
-      if (categories.isEmpty) return null;
-      return categories[0];
+      final categories = UserModel.fromJson(
+        id: categoriesData.id,
+        categoriesData.data,
+      );
+      return categories;
     } catch (err) {
       throw Exception('Failed to fetch the user $err');
     }
   }
 
-  Future<List<ParticipantModel>> fetchPlayers({required String id}) async {
+  Future<QuizModel?> fetchQuizDate({required String id}) async {
     try {
-      final categoriesData = await dbClient.fetchPlayers(
+      final categoriesData = await dbClient.fetchById(
         collection: 'contest',
         id: id,
-        collection2: 'players',
       );
-      final categories = categoriesData
-          .map<ParticipantModel>(
-            (categoryData) => ParticipantModel.fromJson(
-              id: categoryData.id,
-              categoryData.data,
-            ),
-          )
-          .toList();
+      final categories = QuizModel.fromJson(
+        id: categoriesData.id,
+        categoriesData.data,
+      );
       return categories;
+    } catch (err) {
+      throw Exception('Failed to fetch the user $err');
+    }
+  }
+
+  Stream<ResultModel> fetchPlayers({
+    required String id,
+    required String clgName,
+    required String round,
+  }) {
+    try {
+      return FirebaseFirestore.instance
+          .collection('contest')
+          .doc(id)
+          .collection(round)
+          .doc(clgName)
+          .snapshots()
+          .map((doc) =>
+              ResultModel.fromJson(doc.data() as Map<String, dynamic>));
     } catch (err) {
       throw Exception('Failed to fetch the user $err');
     }
@@ -135,41 +143,10 @@ class DbManager {
         .toList();
   }
 
-  Stream<List<ContactModel>> fetchContacts({required String id}) {
-    final snap = FirebaseFirestore.instance
-        .collection('user')
-        .doc(id)
-        .collection('contacts')
-        .snapshots();
-
-    final data = snap.map((doc) {
-      return doc.docs.map((data) {
-        return ContactModel.fromJson(data.data(), id: data.id);
-      }).toList();
-    });
-    //cacheContacts(contacts);
-
-    return data;
-  }
-
   Future<void> createUser(
       String collection, Map<String, dynamic> data, String id) async {
     try {
       await dbClient.add(collection: collection, data: data, id: id);
-    } catch (err) {
-      throw Exception('Failed to create the categories $err');
-    }
-  }
-
-  Future<void> createParticpant(String collection, String id,
-      String nextCollection, Map<String, dynamic> data) async {
-    try {
-      await dbClient.addInCollection(
-        collection: collection,
-        id: id,
-        nextCollection: nextCollection,
-        data: data,
-      );
     } catch (err) {
       throw Exception('Failed to create the categories $err');
     }

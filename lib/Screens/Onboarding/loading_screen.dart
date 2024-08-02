@@ -18,7 +18,7 @@ class LoadingScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Text(
-                "Please wait while we sync you data in the cloud",
+                "Please wait while we sync your data in the cloud",
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: Colors.black,

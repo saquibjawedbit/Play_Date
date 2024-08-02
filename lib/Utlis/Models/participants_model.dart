@@ -1,14 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class ParticipantModel {
-  final DocumentReference userRef;
+  final String id;
   final String gender;
+  final String address;
   final List<int> round1;
   final List<int> round2;
   final List<int> round3;
 
   const ParticipantModel({
-    required this.userRef,
+    required this.id,
+    required this.address,
     required this.gender,
     required this.round1,
     required this.round2,
@@ -17,7 +17,8 @@ class ParticipantModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'userRef': userRef,
+      'id': id,
+      'address': address,
       'gender': gender,
       'round1': round1,
       'round2': round2,
@@ -27,7 +28,8 @@ class ParticipantModel {
 
   factory ParticipantModel.fromJson(Map<String, dynamic> json, {String? id}) {
     return ParticipantModel(
-      userRef: json['endTime'],
+      id: json['uid'],
+      address: json['address'],
       gender: json['gender'],
       round1: json['round1'] as List<int>,
       round2: json['round2'] as List<int>,

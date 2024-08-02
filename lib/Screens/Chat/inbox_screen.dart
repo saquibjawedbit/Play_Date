@@ -1,16 +1,39 @@
 import 'dart:math';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:play_dates/Screens/Chat/chat_screen.dart';
 import 'package:play_dates/Utlis/Models/contact_model.dart';
+import 'package:play_dates/controllers/inbox_controller.dart';
+import 'package:play_dates/controllers/service/cache_manager.dart';
 
-class InboxScreen extends StatelessWidget {
-  const InboxScreen({super.key, required this.name, required this.contacts});
+class InboxScreen extends StatefulWidget {
+  const InboxScreen({super.key, required this.name});
 
   final String name;
-  final Stream<List<ContactModel>>? contacts;
+
+  @override
+  State<InboxScreen> createState() => _InboxScreenState();
+}
+
+class _InboxScreenState extends State<InboxScreen> {
+  final InBoxController _inBoxController = Get.put(InBoxController());
+  final ScrollController _scrollController = ScrollController();
+  Map<String, dynamic>? _lastDocument;
+
+  @override
+  void initState() {
+    _scrollController.addListener(_onScroll);
+    super.initState();
+  }
+
+  void _onScroll() async {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      _inBoxController.fetchOldContacts(lastDocument: _lastDocument);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +43,7 @@ class InboxScreen extends StatelessWidget {
         centerTitle: false,
         backgroundColor: Colors.white,
         title: Text(
-          name,
+          widget.name,
           style: TextStyle(
             color: Colors.black,
             fontSize: min(24, 24.sp),
@@ -29,36 +52,48 @@ class InboxScreen extends StatelessWidget {
         ),
       ),
       body: StreamBuilder<List<ContactModel>>(
-          stream: contacts,
+          stream: _inBoxController.fetchContacts(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: Text("Loading"));
             }
-            if (snapshot.hasData == false) {
-              return const Text("No contacts");
+            if (snapshot.hasData == false || snapshot.data!.isEmpty) {
+              return Column(
+                children: [
+                  searchBtn(),
+                  const Spacer(),
+                  const Text("No contacts"),
+                  const Spacer(),
+                ],
+              );
             }
 
-            return _chatItemBuilder(snapshot);
+            _lastDocument = snapshot.data!.lastOrNull!.toMap();
+
+            return _chatItemBuilder();
           }),
     );
   }
 
-  ListView _chatItemBuilder(AsyncSnapshot<List<ContactModel>> snapshot) {
-    return ListView.builder(
-      itemCount: snapshot.data!.length + 1,
-      itemBuilder: (builder, index) {
-        if (index == 0) return searchBtn();
-        return _chatItem(snapshot, index);
-      },
-    );
+  Widget _chatItemBuilder() {
+    return Obx(() {
+      return ListView.builder(
+        itemCount: _inBoxController.contacts.length + 1,
+        controller: _scrollController,
+        itemBuilder: (builder, index) {
+          if (index == 0) return searchBtn();
+          return _chatItem(_inBoxController.contacts[index - 1]);
+        },
+      );
+    });
   }
 
-  Widget _chatItem(AsyncSnapshot<List<ContactModel>> snapshot, int index) {
+  Widget _chatItem(ContactModel snapshot) {
     return InkWell(
       onTap: () {
         Get.to(
           () => ChatScreen(
-            contact: snapshot.data![index - 1],
+            contact: snapshot,
             openCamera: false,
           ),
         );
@@ -70,18 +105,18 @@ class InboxScreen extends StatelessWidget {
         isThreeLine: false,
         leading: ProfileIcon(
           radius: min(32, 32.w),
-          url: snapshot.data![index - 1].profileUrl,
+          url: snapshot.profileUrl,
         ),
         subtitle: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              snapshot.data![index - 1].lastMessage ?? "",
+              snapshot.lastMessage ?? "",
             ),
             const SizedBox(
               width: 10,
             ),
-            if (!snapshot.data![index - 1].isSeen)
+            if (!snapshot.isSeen)
               const CircleAvatar(
                 backgroundColor: Colors.blue,
                 radius: 5,
@@ -90,13 +125,11 @@ class InboxScreen extends StatelessWidget {
         ),
         subtitleTextStyle: TextStyle(
           color: Colors.black,
-          fontWeight: !snapshot.data![index - 1].isSeen
-              ? FontWeight.w700
-              : FontWeight.w400,
+          fontWeight: !snapshot.isSeen ? FontWeight.w700 : FontWeight.w400,
           fontSize: min(16, 16.sp),
         ),
         title: Text(
-          snapshot.data![index - 1].name,
+          snapshot.name,
           style: TextStyle(
             color: Colors.black,
             fontSize: min(20, 20.sp),
@@ -105,7 +138,7 @@ class InboxScreen extends StatelessWidget {
         ),
         minLeadingWidth: 1,
         trailing: GestureDetector(
-          onTap: () => _sendImage(snapshot.data![index - 1]),
+          onTap: () => _sendImage(snapshot),
           child: Icon(
             Icons.camera_alt_rounded,
             color: Colors.black,
@@ -138,6 +171,8 @@ class InboxScreen extends StatelessWidget {
           ],
         ),
         child: TextField(
+          textInputAction: TextInputAction.search,
+          onChanged: _inBoxController.search,
           style: TextStyle(
             color: Colors.black,
             fontSize: min(18, 18.sp),
@@ -189,7 +224,7 @@ class ProfileIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Ink(
+    return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
@@ -204,8 +239,9 @@ class ProfileIcon extends StatelessWidget {
         ],
       ),
       child: CircleAvatar(
-        backgroundImage: NetworkImage(
+        backgroundImage: CachedNetworkImageProvider(
           url,
+          cacheManager: ContactCacheManager.instance,
         ),
         radius: radius,
       ),

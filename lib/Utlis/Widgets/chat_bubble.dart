@@ -1,9 +1,16 @@
+import 'dart:io';
 import 'dart:math';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:play_dates/Screens/Chat/chat_screen.dart';
 import 'package:play_dates/Screens/Chat/inbox_screen.dart';
+import 'package:play_dates/Utlis/Models/message_model.dart';
+import 'package:play_dates/controllers/chat_controller.dart';
+import 'package:play_dates/controllers/service/cache_manager.dart';
+import 'package:swipe_to/swipe_to.dart';
+import '../../Screens/Chat/image_screen.dart';
 
 class ChatBubble extends StatefulWidget {
   const ChatBubble({
@@ -13,80 +20,217 @@ class ChatBubble extends StatefulWidget {
     required this.myMessage,
     required this.profileUrl,
     required this.color,
+    required this.index,
   });
 
   final Alignment alignment;
-  final Map<String, dynamic> data;
+  final MessageModel data;
   final bool myMessage;
   final String profileUrl;
   final Color color;
+  final int index;
 
   @override
   State<ChatBubble> createState() => _ChatBubbleState();
 }
 
 class _ChatBubbleState extends State<ChatBubble> {
-  bool onTapped = false;
+  File? file;
+  final ChatController chatController = Get.find();
+
+  Widget _showContent() {
+    String type = widget.data.type;
+    if (type == 'text' || type == 'reply') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Text(
+          widget.data.message,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: min(16, 16.sp),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    } else if (type == 'image') {
+      return GestureDetector(
+        onTap: () {
+          Get.to(
+            () => ImageScreen(
+              imagePath: widget.data.message,
+            ),
+          );
+        },
+        child: SizedBox(
+          width: 300,
+          height: 300,
+          child: CachedNetworkImage(
+            cacheManager: ChatCacheManager.instance,
+            imageUrl: widget.data.message,
+            placeholder: (context, message) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.black,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      return Row(
+        children: [
+          IconButton(
+            onPressed: () {
+              if (file != null) {
+                chatController.playRecording(file!.path, widget.index);
+              } else {
+                debugPrint("NOT DOWNLOADED");
+              }
+            },
+            icon: Obx(() {
+              return (chatController.audioIndex.value == widget.index)
+                  ? const Icon(Icons.pause)
+                  : const Icon(Icons.play_arrow);
+            }),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              child: Obx(
+                () {
+                  return LinearProgressIndicator(
+                    value: (chatController.audioIndex.value == widget.index)
+                        ? chatController.timePlayed.value
+                        : 0.0,
+                    minHeight: 10,
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+  }
+
+  void _cacheAndPlayAudio(String url) async {
+    try {
+      final fileInfo = await ChatCacheManager.instance.downloadFile(url);
+      file = fileInfo.file;
+    } catch (e) {
+      debugPrint('Error caching or playing audio: $e');
+    }
+  }
+
+  Widget _replyBar() {
+    String type = widget.data.reply!['type'] ?? "text";
+    String message = widget.data.reply!['reply'] ?? "Unavailable";
+    if (type == "text" || type == 'reply') {
+      return Text(
+        message,
+        maxLines: 4,
+        textAlign: TextAlign.right,
+        softWrap: true,
+        overflow: TextOverflow.clip,
+        style: TextStyle(
+          color: const Color.fromARGB(255, 107, 105, 105),
+          fontSize: min(16, 16.sp),
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    } else if (type == 'image') {
+      return Expanded(
+        child: Row(
+          children: [
+            Text(
+              "Photo",
+              maxLines: 4,
+              softWrap: true,
+              overflow: TextOverflow.clip,
+              style: TextStyle(
+                color: const Color.fromARGB(255, 59, 59, 59),
+                fontSize: min(16, 16.sp),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            SizedBox(
+              height: 80,
+              width: 80,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: CachedNetworkImage(
+                  cacheManager: ChatCacheManager.instance,
+                  imageUrl: message,
+                  fit: BoxFit.fill,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Expanded(
+        child: Row(
+          children: [
+            Text(
+              "Audio",
+              maxLines: 4,
+              softWrap: true,
+              overflow: TextOverflow.clip,
+              style: TextStyle(
+                color: const Color.fromARGB(255, 59, 59, 59),
+                fontSize: min(16, 16.sp),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            const SizedBox(
+              height: 80,
+              width: 80,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Icon(
+                  Icons.play_arrow,
+                  color: Color.fromARGB(135, 0, 0, 0),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      alignment: widget.alignment,
-      color: onTapped == true
-          ? const Color.fromARGB(181, 83, 86, 82)
-          : Colors.transparent,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!widget.myMessage)
-            ProfileIcon(
-              url: widget.profileUrl,
-              radius: min(20, 20.w),
-            ),
-          if (!widget.myMessage)
-            SizedBox(
-              width: min(10.w, 10),
-            ),
-          GestureDetector(
-            onLongPress: () {
-              setState(() {
-                onTapped = true;
-              });
-              // showDialog(
-              //   context: context,
-              //   builder: (context) => Dialog(
-              //     backgroundColor: Colors.white,
-              //     elevation: 100,
-              //     insetPadding:
-              //         const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-              //     child: Column(
-              //       mainAxisSize: MainAxisSize.min,
-              //       children: [
-              //         TextButton(
-              //           onPressed: () {
-
-              //           },
-              //           style: TextButton.styleFrom(
-              //             padding: const EdgeInsets.symmetric(
-              //                 horizontal: 100, vertical: 12),
-              //           ),
-              //           child: const Text(
-              //             "Delete for everyone",
-              //             style: TextStyle(
-              //               color: Colors.black,
-              //               fontWeight: FontWeight.w600,
-              //             ),
-              //           ),
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              // );
-            },
-            child: Container(
-              padding: const EdgeInsets.only(
-                  top: 12, bottom: 12, left: 24, right: 12),
+    if (widget.data.type == 'audio') {
+      _cacheAndPlayAudio(widget.data.message);
+    }
+    return SwipeTo(
+      onRightSwipe: (details) {
+        chatController.reply(
+            widget.data.message, widget.data.type, widget.myMessage);
+      },
+      child: Container(
+        alignment: widget.alignment,
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (!widget.myMessage)
+              ProfileIcon(
+                url: widget.profileUrl,
+                radius: min(20, 20.w),
+              ),
+            if (!widget.myMessage)
+              SizedBox(
+                width: min(10.w, 10),
+              ),
+            Container(
+              padding: const EdgeInsets.all(12),
               constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.7),
               decoration: BoxDecoration(
@@ -100,26 +244,43 @@ class _ChatBubbleState extends State<ChatBubble> {
                   ),
                 ],
               ),
-              child: (widget.data['type'] == 'text')
-                  ? Text(
-                      widget.data['message'],
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: min(16, 16.sp),
-                        fontWeight: FontWeight.w500,
+              child: Column(
+                crossAxisAlignment: widget.myMessage
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  if (widget.data.type == 'reply')
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      color: widget.data.reply!['receiverId'] ==
+                              FirebaseAuth.instance.currentUser!.uid
+                          ? const Color.fromARGB(125, 255, 221, 72)
+                          : const Color.fromARGB(125, 243, 255, 253),
+                      child: Row(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(
+                              right: 12,
+                              top: 4,
+                              bottom: 4,
+                            ),
+                            width: 4,
+                            height: 40,
+                            color: Colors.blue,
+                          ),
+                          _replyBar(),
+                        ],
                       ),
-                    )
-                  : GestureDetector(
-                      onTap: () {
-                        Get.to(() => ImageScreen(
-                              imagePath: widget.data['message'],
-                            ));
-                      },
-                      child: Image.network(widget.data['message']),
                     ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  _showContent(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

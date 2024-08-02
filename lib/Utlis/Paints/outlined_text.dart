@@ -10,6 +10,7 @@ class OutlinedText extends StatelessWidget {
     required this.borderColor,
     required this.offset,
     this.letterSpacing,
+    this.height,
   });
 
   final String text;
@@ -19,6 +20,7 @@ class OutlinedText extends StatelessWidget {
   final Color borderColor;
   final Offset offset;
   final double? letterSpacing;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,7 @@ class OutlinedText extends StatelessWidget {
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
             letterSpacing: letterSpacing,
+            height: height,
             foreground: Paint()
               ..style = PaintingStyle.stroke
               ..strokeWidth = strokeWidth ?? 5
@@ -45,6 +48,7 @@ class OutlinedText extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontSize: fontSize,
+            height: height,
             letterSpacing: letterSpacing,
             fontWeight: FontWeight.bold,
             shadows: [

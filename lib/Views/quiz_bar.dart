@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
@@ -102,9 +101,7 @@ class QuizBar extends StatelessWidget {
                   ],
                 ),
                 child: CircleAvatar(
-                  backgroundImage: const NetworkImage(
-                    'https://images.unsplash.com/photo-1718963892270-04300c864522?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                  ),
+                  backgroundImage: const AssetImage("assets/quiz_icon.png"),
                   radius: min(32, 32.w),
                 ),
               ),

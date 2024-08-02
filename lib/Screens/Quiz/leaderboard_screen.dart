@@ -1,13 +1,19 @@
 import 'dart:math';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:play_dates/Screens/Quiz/home_screen.dart';
+import 'package:play_dates/Utlis/Models/result_model.dart';
+import 'package:play_dates/Utlis/Models/user_model.dart';
+import 'package:play_dates/controllers/user_controller.dart';
+import 'package:play_dates/main.dart';
 
 class LeaderBoardScreen extends StatelessWidget {
-  const LeaderBoardScreen({super.key});
+  LeaderBoardScreen({super.key, this.matchedName, required this.result});
+
+  final String? matchedName;
+  final ResultModel result;
+  final UserController userController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +30,7 @@ class LeaderBoardScreen extends StatelessWidget {
         ),
         leading: IconButton(
           onPressed: () {
-            Get.offAll(() => const HomeScreen());
+            Get.back();
           },
           icon: const Icon(
             Icons.close_sharp,
@@ -47,24 +53,24 @@ class LeaderBoardScreen extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const LeaderBoardTile(
+            LeaderBoardTile(
               title: "Current Match: ",
               titleColor: Colors.black,
-              trailing: "Vanshika",
-              leadingColor: Color.fromARGB(255, 146, 97, 53),
+              trailing: matchedName ?? ".....",
+              leadingColor: const Color.fromARGB(255, 146, 97, 53),
               iconPath: "assets/medal-star.png",
             ),
-            const LeaderBoardTile(
+            LeaderBoardTile(
               title: "Players: ",
               titleColor: Colors.black,
-              trailing: "15",
-              leadingColor: Color.fromARGB(204, 21, 21, 21),
+              trailing: (result.count).toString(),
+              leadingColor: const Color.fromARGB(204, 21, 21, 21),
               iconPath: "assets/user-big-group.png",
             ),
             SizedBox(
               height: 20.h,
             ),
-            AutoSizeText(
+            Text(
               "Rankings",
               maxLines: 1,
               style: TextStyle(
@@ -75,7 +81,7 @@ class LeaderBoardScreen extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: 20,
+                itemCount: result.matches.length,
                 itemBuilder: (context, index) {
                   Color color = Colors.black;
                   if (index == 0) {
@@ -88,6 +94,8 @@ class LeaderBoardScreen extends StatelessWidget {
                   return PlayListTile(
                     index: index,
                     color: color,
+                    data: result.matches[index],
+                    isMale: userController.user!.gender == 'male',
                   );
                 },
               ),
@@ -99,15 +107,38 @@ class LeaderBoardScreen extends StatelessWidget {
   }
 }
 
-class PlayListTile extends StatelessWidget {
+class PlayListTile extends StatefulWidget {
   const PlayListTile({
     super.key,
     required this.index,
+    required this.data,
     required this.color,
+    required this.isMale,
   });
 
   final int index;
   final Color color;
+  final Player data;
+  final bool isMale;
+
+  @override
+  State<PlayListTile> createState() => _PlayListTileState();
+}
+
+class _PlayListTileState extends State<PlayListTile> {
+  UserModel? playerData;
+
+  @override
+  void initState() {
+    _loadData();
+    super.initState();
+  }
+
+  void _loadData() async {
+    String id = widget.isMale ? widget.data.maleId! : widget.data.femaleId!;
+    playerData = await categoryRepo.fetchUser(id: id);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,10 +149,10 @@ class PlayListTile extends StatelessWidget {
           SizedBox(
             width: 30.w,
             child: Text(
-              (index + 1).toString(),
+              (widget.index + 1).toString(),
               maxLines: 1,
               style: TextStyle(
-                color: color,
+                color: widget.color,
                 fontSize: min(20, 20.sp),
                 fontWeight: FontWeight.w600,
               ),
@@ -132,20 +163,22 @@ class PlayListTile extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: color,
+                color: widget.color,
                 width: 2.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: color,
+                  color: widget.color,
                   spreadRadius: 3,
                   offset: const Offset(4, 4),
                 )
               ],
             ),
             child: CircleAvatar(
-              backgroundImage: const NetworkImage(
-                "https://images.unsplash.com/photo-1718963892270-04300c864522?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+              backgroundImage: NetworkImage(
+                playerData != null
+                    ? playerData!.imageUrls[0]
+                    : "https://picsum.photos/200/300",
               ),
               maxRadius: min(16, 16.w),
             ),
@@ -154,18 +187,18 @@ class PlayListTile extends StatelessWidget {
       ),
       title: Text(
         maxLines: 1,
-        "Vanshika",
+        playerData != null ? playerData!.name : "San",
         style: TextStyle(
-          color: color,
+          color: widget.color,
           fontSize: min(20, 20.sp),
           fontWeight: FontWeight.w600,
         ),
       ),
       trailing: AutoSizeText(
-        (index + 1).toString(),
+        (widget.data.score).toString(),
         maxLines: 1,
         style: TextStyle(
-          color: color,
+          color: widget.color,
           fontSize: min(20, 20.sp),
           fontWeight: FontWeight.w600,
         ),

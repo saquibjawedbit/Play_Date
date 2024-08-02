@@ -7,13 +7,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:play_dates/Screens/Chat/inbox_screen.dart';
-import 'package:play_dates/Utlis/Buttons/flat_btn.dart';
 import 'package:play_dates/Utlis/Models/contact_model.dart';
+import 'package:play_dates/Utlis/Models/message_model.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
-import 'package:play_dates/controllers/service/chat/chat_service.dart';
+import 'package:play_dates/controllers/chat_controller.dart';
 import 'package:play_dates/main.dart';
-
+import 'package:record/record.dart';
 import '../../Utlis/Widgets/chat_bubble.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import '../../Views/picked_image_screen.dart';
+import 'message_input_bar.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
@@ -30,35 +34,11 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _messageController = TextEditingController();
-  final ChatService _chatService = ChatService();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final AudioRecorder audioRecord = AudioRecorder();
   final ScrollController _scrollController = ScrollController();
-
-  void sendMessage() async {
-    if (_messageController.text.isNotEmpty) {
-      await _chatService.sendMessage(
-        widget.contact.uid!,
-        _messageController.text,
-        'text',
-      );
-      _messageController.clear();
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.jumpTo(
-        _scrollController.position.maxScrollExtent,
-      );
-    }
-  }
+  final ChatController chatController = Get.put(ChatController());
+  DocumentSnapshot? _lastDocument;
 
   @override
   void initState() {
@@ -66,8 +46,64 @@ class _ChatScreenState extends State<ChatScreen> {
     if (widget.openCamera) {
       _pickImage(ImageSource.camera);
     }
-    _chatService.messageSeen(
+    _scrollController.addListener(_onScroll);
+    chatController.messageSeen(
         _firebaseAuth.currentUser!.uid, widget.contact.uid!);
+  }
+
+  void _onScroll() async {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      print("loading");
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await chatController.getOldMessages(
+              FirebaseAuth.instance.currentUser!.uid,
+              widget.contact.uid!,
+              _lastDocument!,
+              limit: 20);
+      if (querySnapshot.docs.isNotEmpty) {
+        _lastDocument = querySnapshot.docs.last;
+        chatController.messageItems.addAll(querySnapshot.docs);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    audioRecord.dispose();
+    super.dispose();
+  }
+
+  Future<void> startRecording() async {
+    try {
+      if (await audioRecord.hasPermission()) {
+        final directory = await getApplicationDocumentsDirectory();
+        String filePath = p.join(directory.path, 'recording.wav');
+        await audioRecord.start(
+            const RecordConfig(
+              encoder: AudioEncoder.wav,
+              bitRate: 96000, // Bitrate (affects quality and size)
+              sampleRate: 16000, // Lower sample rate (16 kHz)
+              numChannels: 1, // Mono recording
+            ),
+            path: filePath);
+      }
+    } catch (e) {
+      debugPrint('Error: start recording : $e');
+    }
+  }
+
+  Future<void> stopRecording() async {
+    try {
+      String? path = await audioRecord.stop();
+      if (path != null) {
+        File file = File(path);
+        chatController.sendAudio(widget.contact.uid!, file);
+      }
+    } catch (e) {
+      debugPrint("Error: stop recording $e");
+    }
   }
 
   @override
@@ -77,13 +113,19 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: const Color.fromARGB(255, 240, 240, 240),
         appBar: appBar(),
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Column(
             children: [
               Expanded(
                 child: _buildMessageList(),
               ),
-              _inputBar(),
+              _messageSeen(),
+              MessageInputBar(
+                startRecording: startRecording,
+                stopRecording: stopRecording,
+                pickImage: _pickImage,
+                contact: widget.contact,
+              ),
             ],
           ),
         ),
@@ -93,10 +135,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   StreamBuilder<ContactModel> _messageSeen() {
     return StreamBuilder(
-      stream: _chatService.isMessageSeen(
+      stream: chatController.isMessageSeen(
           _firebaseAuth.currentUser!.uid, widget.contact.uid!),
       builder: (context, snapshot) {
-        String value = "";
+        String value = "Seen";
+        if (snapshot.hasData == false) {
+          return SizedBox(
+            height: MediaQuery.of(context).size.height - 200,
+            child: const Center(child: Text("No Messages")),
+          );
+        }
 
         if (snapshot.connectionState == ConnectionState.active &&
             snapshot.data!.isSeen == true) {
@@ -114,7 +162,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageItem(DocumentSnapshot document) {
+  Widget _buildMessageItem(DocumentSnapshot document, int index) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
     //Align the message to right, if sender sends it, and to left if receiver sends it.
@@ -128,26 +176,27 @@ class _ChatScreenState extends State<ChatScreen> {
 
     bool myMessage = (data['senderId'] == _firebaseAuth.currentUser!.uid);
 
-    _chatService.messageSeen(
+    chatController.messageSeen(
         _firebaseAuth.currentUser!.uid, widget.contact.uid!);
 
-    return _textBubble(alignment, myMessage, color, data);
+    return _textBubble(alignment, myMessage, color, data, index);
   }
 
   Widget _textBubble(Alignment alignment, bool myMessage, Color color,
-      Map<String, dynamic> data) {
+      Map<String, dynamic> data, int index) {
     return ChatBubble(
       alignment: alignment,
       myMessage: myMessage,
       color: color,
-      data: data,
+      data: MessageModel.fromJson(data),
       profileUrl: widget.contact.profileUrl,
+      index: index,
     );
   }
 
   Widget _buildMessageList() {
     return StreamBuilder(
-      stream: _chatService.getMessages(
+      stream: chatController.getMessages(
           widget.contact.uid!, _firebaseAuth.currentUser!.uid),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -158,102 +207,33 @@ class _ChatScreenState extends State<ChatScreen> {
           return const Text("Loading...");
         }
 
-        List<Widget> messageItems = snapshot.data!.docs.reversed
-            .map((document) => _buildMessageItem(document))
-            .toList();
+        _lastDocument = snapshot.data!.docs.lastOrNull;
+        if (chatController.messageItems.isNotEmpty) {
+          chatController.messageItems.insert(0, snapshot.data!.docs.first);
+        } else {
+          chatController.messageItems
+              .addAll(snapshot.data!.docs.map((document) {
+            return document;
+          }).toList());
+        }
 
-        messageItems.insert(0, _messageSeen());
-
-        return ListView(
-          controller: _scrollController,
-          reverse: true,
-          children: messageItems,
+        return Obx(
+          () {
+            return ReorderableListView.builder(
+                reverse: true,
+                scrollController: _scrollController,
+                itemBuilder: (context, index) {
+                  return Container(
+                    key: ValueKey(chatController.messageItems[index]),
+                    child: _buildMessageItem(
+                        chatController.messageItems[index], index),
+                  );
+                },
+                itemCount: chatController.messageItems.length,
+                onReorder: (oldIndex, newIndex) {});
+          },
         );
       },
-    );
-  }
-
-  Widget _inputBar() {
-    return TextField(
-      textInputAction: TextInputAction.done,
-      controller: _messageController,
-      onSubmitted: (message) {
-        sendMessage();
-      },
-      maxLines: 5,
-      minLines: 1,
-      textAlignVertical: TextAlignVertical.center,
-      style: TextStyle(
-        color: Colors.black,
-        fontWeight: FontWeight.w500,
-        fontSize: min(20, 20.sp),
-      ),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: const Color.fromARGB(255, 243, 255, 253),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 20,
-        ),
-        hintText: "Message...",
-        hintStyle: TextStyle(
-          color: Colors.black,
-          fontWeight: FontWeight.w500,
-          fontSize: min(20, 20.sp),
-        ),
-        prefixIcon: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: GestureDetector(
-            onTap: () {
-              _pickImage(ImageSource.camera);
-            },
-            child: Icon(
-              Icons.camera_alt_outlined,
-              size: min(36, 36.sp),
-            ),
-          ),
-        ),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.mic_outlined,
-              color: Colors.black,
-              size: min(36, 36.w),
-            ),
-            SizedBox(
-              width: min(5, 5.w),
-            ),
-            GestureDetector(
-              onTap: () {
-                _pickImage(ImageSource.gallery);
-              },
-              child: Icon(
-                Icons.image_outlined,
-                color: Colors.black,
-                size: min(36, 36.w),
-              ),
-            ),
-            SizedBox(
-              width: min(10, 10.w),
-            ),
-          ],
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(
-            color: Colors.black,
-            width: 4.0,
-          ),
-          borderRadius: BorderRadius.circular(21),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(
-            color: Colors.black,
-            width: 4.0,
-          ),
-          borderRadius: BorderRadius.circular(21),
-        ),
-      ),
     );
   }
 
@@ -266,7 +246,9 @@ class _ChatScreenState extends State<ChatScreen> {
       bool send = await Get.to(() => PickedImageScreen(
             imagePath: File(images.path),
           ));
-      if (send) _chatService.sendImage(widget.contact.uid!, File(images.path));
+      if (send) {
+        chatController.sendImage(widget.contact.uid!, File(images.path));
+      }
     }
   }
 
@@ -324,66 +306,6 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class PickedImageScreen extends StatelessWidget {
-  const PickedImageScreen({
-    super.key,
-    required this.imagePath,
-  });
-
-  final File imagePath;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            child: Image.file(
-              imagePath,
-              fit: BoxFit.contain,
-            ),
-          ),
-          SizedBox(
-            height: min(20, 20.h),
-          ),
-          FlatBtn(
-            onTap: () {
-              Get.back(result: true);
-            },
-            text: "SEND",
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ImageScreen extends StatelessWidget {
-  const ImageScreen({
-    super.key,
-    required this.imagePath,
-  });
-
-  final String imagePath;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: SizedBox(
-          child: Image.network(
-            imagePath,
-            fit: BoxFit.contain,
-          ),
-        ),
       ),
     );
   }

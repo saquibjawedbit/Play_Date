@@ -29,6 +29,7 @@ class _AnimatedBtnsState extends State<AnimatedBtns> {
   final QuizController controller = Get.find();
 
   void onTap(context) {
+    if (isTapped) return;
     setState(() {
       isTapped = true;
     });

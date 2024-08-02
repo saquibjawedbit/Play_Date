@@ -4,9 +4,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:play_dates/Screens/Onboarding/loading_screen.dart';
 import 'package:play_dates/Screens/Quiz/home_screen.dart';
 import 'package:play_dates/Utlis/Models/contact_model.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
+import 'package:play_dates/controllers/service/cache_manager.dart';
 import 'package:play_dates/main.dart';
 
 class UserController extends GetxController {
@@ -16,7 +18,6 @@ class UserController extends GetxController {
   var currentIndex = 0.obs;
   String email = '';
   DateTime dateTime = DateTime.now();
-  // 1- Male, 0 -Female
   var gender = "male";
   var loading = true.obs;
 
@@ -26,36 +27,11 @@ class UserController extends GetxController {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   void getUser() async {
-    String email = FirebaseAuth.instance.currentUser!.email.toString();
-    UserModel? data = await categoryRepo.fetchUser(email: email);
+    String id = FirebaseAuth.instance.currentUser!.uid.toString();
+    UserModel? data = await categoryRepo.fetchUser(id: id);
     if (data != null) user = data;
     loading.value = false;
     //addFriend();
-    if (user != null) getContacts();
-  }
-
-  void getContacts() async {
-    contacts = categoryRepo.fetchContacts(
-      id: user!.id!,
-    );
-    //print(contacts);
-  }
-
-  Future<void> addFriend() async {
-    String id = _firebaseAuth.currentUser!.uid;
-    String fId = "SkxU63QxXWaLiHl30hysHhNzc142";
-    ContactModel model = ContactModel(
-      name: "Saquib",
-      isSeen: false,
-      profileUrl:
-          "https://firebasestorage.googleapis.com/v0/b/play-date-6570f.appspot.com/o/images%2F17209354737247430?alt=media&token=862ee22d-5c72-4f36-a1e1-68a04a1076af",
-    );
-    dbClient.addFriend(
-        collection: "user",
-        id: fId,
-        subCollection: "contacts",
-        subId: id,
-        data: model.toMap());
   }
 
   void updateGender(bool male) {
@@ -106,26 +82,61 @@ class UserController extends GetxController {
     getUser();
   }
 
-  void upload(List<XFile> selectedImage) async {
-    if (selectedImage.length != 4) return;
+  void updateUser(List<String> imageUrls) async {
+    String uid = _firebaseAuth.currentUser!.uid;
+    UserModel userModel = UserModel(
+      name: user!.name,
+      dob: user!.dob,
+      email: user!.email,
+      height: user!.height,
+      address: user!.address,
+      gender: user!.gender,
+      imageUrls: imageUrls,
+    );
+    categoryRepo.createUser(
+      'user',
+      userModel.toMap(),
+      uid,
+    );
+    getUser();
+    await CustomCacheManager.instance.emptyCache();
+  }
+
+  void upload(List<XFile> selectedImage, {bool onBoard = true}) async {
+    if (selectedImage.isEmpty) return;
+    if (selectedImage.length != 4 && onBoard) return;
+
+    Get.offAll(
+      () => const LoadingScreen(),
+      transition: Transition.fade,
+      duration: const Duration(seconds: 1),
+    );
 
     updateEmail(FirebaseAuth.instance.currentUser!.email.toString());
     final List<String> imageUrls = [];
     for (int index = 0; index < 4; index++) {
-      String uniqueName =
-          DateTime.now().microsecondsSinceEpoch.toString() + index.toString();
-      Reference referenceRoot = FirebaseStorage.instance.ref();
-      Reference referenceDirImages = referenceRoot.child('images');
-      Reference referenceImagetoUpload = referenceDirImages.child(uniqueName);
-      try {
-        await referenceImagetoUpload.putFile(File(selectedImage[index].path));
-        String url = await referenceImagetoUpload.getDownloadURL();
-        imageUrls.add(url);
-      } catch (e) {
-        debugPrint(e.toString());
+      if (index < selectedImage.length) {
+        String uniqueName =
+            _firebaseAuth.currentUser!.uid.toString() + index.toString();
+        Reference referenceRoot = FirebaseStorage.instance.ref();
+        Reference referenceDirImages = referenceRoot.child('images');
+        Reference referenceImagetoUpload = referenceDirImages.child(uniqueName);
+        try {
+          await referenceImagetoUpload.putFile(File(selectedImage[index].path));
+          String url = await referenceImagetoUpload.getDownloadURL();
+          imageUrls.add(url);
+        } catch (e) {
+          debugPrint(e.toString());
+        }
+      } else {
+        imageUrls.add(user!.imageUrls[index]);
       }
     }
-    createUser(imageUrls);
+    if (onBoard) {
+      createUser(imageUrls);
+    } else {
+      updateUser(imageUrls);
+    }
     Get.offAll(
       () => const HomeScreen(),
       transition: Transition.fade,

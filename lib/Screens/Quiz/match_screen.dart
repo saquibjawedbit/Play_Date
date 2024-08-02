@@ -1,14 +1,83 @@
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:play_dates/Screens/Chat/chat_screen.dart';
+import 'package:play_dates/Screens/Chat/inbox_screen.dart';
+import 'package:play_dates/Screens/Quiz/home_screen.dart';
+import 'package:play_dates/Screens/Quiz/leaderboard_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
+import 'package:play_dates/Utlis/Models/contact_model.dart';
+import 'package:play_dates/Utlis/Models/result_model.dart';
+import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
 import 'package:play_dates/Utlis/Widgets/custom_dialog_box.dart';
+import 'package:play_dates/controllers/user_controller.dart';
+import 'package:play_dates/main.dart';
 
+// ignore: must_be_immutable
 class MatchScreen extends StatelessWidget {
-  const MatchScreen({super.key, required this.match});
+  MatchScreen({
+    super.key,
+    required this.round,
+  });
 
-  final bool match;
+  final String round;
+
+  late bool match;
+
+  UserModel? user;
+
+  final UserController userController = Get.find();
+
+  void _chat() async {
+    ContactModel newChat = ContactModel(
+      uid: user!.id,
+      name: user!.name,
+      profileUrl: user!.imageUrls[0],
+      isSeen: false,
+      lastMessageTime: Timestamp.now(),
+      lastMessage: "Say Hi",
+    );
+    categoryRepo.addFriend('user', userController.user!.id!, 'contacts',
+        user!.id!, newChat.toMap());
+    Get.offAll(() => const HomeScreen());
+    Get.to(
+      () => InboxScreen(
+        name: userController.user!.name,
+      ),
+    );
+    Get.to(
+      () => ChatScreen(
+        contact: newChat,
+        openCamera: false,
+      ),
+    );
+  }
+
+  void _loadData(ResultModel result) async {
+    List<Player> matches = result.matches;
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+
+    for (Player player in matches) {
+      if (player.femaleId == uid) {
+        user = await categoryRepo.fetchUser(id: player.maleId!);
+        break;
+      }
+      if (player.maleId == uid) {
+        if (player.femaleId == null) continue;
+        user = await categoryRepo.fetchUser(id: player.femaleId!);
+        break;
+      }
+    }
+    if (user == null) {
+      match = false;
+    } else {
+      match = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,112 +90,143 @@ class MatchScreen extends StatelessWidget {
             vertical: 36,
           ),
           child: Center(
-            child: Column(
-              children: [
-                const AppTitle(),
-                SizedBox(
-                  height: min(36, 36.h),
+            child: StreamBuilder<ResultModel>(
+                stream: categoryRepo.fetchPlayers(
+                  id: "${DateTime.now().year}y${DateTime.now().month}m${DateTime.now().day}",
+                  clgName: userController.user!.address,
+                  round: round,
                 ),
-                if (match)
-                  RichText(
-                    text: TextSpan(
-                      text: "It's a ",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: min(40, 40.sp),
-                        fontWeight: FontWeight.bold,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting ||
+                      snapshot.hasData == false) {
+                    return const CircularProgressIndicator.adaptive();
+                  }
+
+                  _loadData(snapshot.data!);
+
+                  return Column(
+                    children: [
+                      const AppTitle(),
+                      SizedBox(
+                        height: min(36, 36.h),
                       ),
-                      children: [
-                        TextSpan(
-                          text: "Match!",
-                          style: TextStyle(
-                            fontSize: min(56, 56.sp),
+                      if (match)
+                        RichText(
+                          text: TextSpan(
+                            text: "It's a ",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: min(40, 40.sp),
+                              fontWeight: FontWeight.bold,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: "Match!",
+                                style: TextStyle(
+                                  fontSize: min(56, 56.sp),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                if (!match)
-                  Text(
-                    "You couldn't find a match",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: min(36, 36.sp),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                SizedBox(
-                  height: min(30, 30.h),
-                ),
-                if (match) matchWidget(),
-                if (!match)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          "assets/02.png",
-                          height: min(200, 200.h),
-                          fit: BoxFit.cover,
-                        ),
-                        SizedBox(
-                          height: min(10, 10.h),
-                        ),
+                      if (!match)
                         Text(
-                          "But your match might be just around the corner",
+                          "You couldn't find a match",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: min(18, 18.sp),
-                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                            fontSize: min(36, 36.sp),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                SizedBox(
-                  height: min(40, 40.h),
-                ),
-                if (match)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      GestureDetector(
-                        onTap: () {},
-                        child: horButton(
-                          "Chat",
-                          const Color.fromARGB(255, 127, 159, 188),
-                          min(164, 164.w),
-                        ),
+                      SizedBox(
+                        height: min(30, 30.h),
                       ),
+                      if (match) matchWidget(),
+                      if (!match)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.asset(
+                                "assets/02.png",
+                                height: min(200, 200.h),
+                                fit: BoxFit.cover,
+                              ),
+                              SizedBox(
+                                height: min(10, 10.h),
+                              ),
+                              Text(
+                                "But your match might be just around the corner",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: min(18, 18.sp),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      SizedBox(
+                        height: min(40, 40.h),
+                      ),
+                      if (match)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            GestureDetector(
+                              onTap: _chat,
+                              child: horButton(
+                                "Chat",
+                                const Color.fromARGB(255, 127, 159, 188),
+                                min(164, 164.w),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => CustomDialogBox(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20, horizontal: 12),
+                                    content: premiumDialogBox(),
+                                  ),
+                                );
+                              },
+                              child: horButton(
+                                "Swap",
+                                const Color.fromARGB(255, 255, 102, 102),
+                                min(164.w, 164),
+                              ),
+                            ),
+                          ],
+                        ),
+                      if (match)
+                        const SizedBox(
+                          height: 20,
+                        ),
                       GestureDetector(
                         onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => CustomDialogBox(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 20, horizontal: 12),
-                              content: premiumDialogBox(),
+                          final ResultModel result = snapshot.data!;
+
+                          Get.to(
+                            () => LeaderBoardScreen(
+                              result: result,
+                              matchedName: user?.name,
                             ),
                           );
                         },
                         child: horButton(
-                          "Swap",
-                          const Color.fromARGB(255, 255, 102, 102),
-                          min(164.w, 164),
+                          "View Leaderboard",
+                          const Color.fromARGB(255, 244, 215, 56),
+                          200,
+                          fontSize: 16,
                         ),
-                      ),
+                      )
                     ],
-                  ),
-                if (!match)
-                  horButton(
-                    "Next Quest in 00:00:00",
-                    const Color.fromARGB(255, 127, 159, 188),
-                    null,
-                  )
-              ],
-            ),
+                  );
+                }),
           ),
         ),
       ),
@@ -141,12 +241,12 @@ class MatchScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              profileImage(),
+              profileImage(userController.user!.imageUrls[0]),
               SizedBox(
                 height: min(10, 10.h),
               ),
               Text(
-                "Hank",
+                userController.user!.name,
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: min(32, 32.sp),
@@ -164,7 +264,7 @@ class MatchScreen extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                "Natie",
+                user!.name,
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: min(32, 32.sp),
@@ -174,7 +274,7 @@ class MatchScreen extends StatelessWidget {
               SizedBox(
                 height: min(10, 10.h),
               ),
-              profileImage(),
+              profileImage(user!.imageUrls[0]),
             ],
           ),
         ),
@@ -248,7 +348,8 @@ class MatchScreen extends StatelessWidget {
     );
   }
 
-  Container horButton(String text, Color color, double? width) {
+  Container horButton(String text, Color color, double? width,
+      {double fontSize = 28}) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 2,
@@ -273,7 +374,7 @@ class MatchScreen extends StatelessWidget {
             text,
             style: TextStyle(
               color: Colors.black,
-              fontSize: min(28, 28.sp),
+              fontSize: min(fontSize, fontSize.sp),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -282,7 +383,7 @@ class MatchScreen extends StatelessWidget {
     );
   }
 
-  Container profileImage() {
+  Container profileImage(String link) {
     return Container(
       decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -295,7 +396,7 @@ class MatchScreen extends StatelessWidget {
             )
           ]),
       child: CircleAvatar(
-        backgroundColor: Colors.green,
+        backgroundImage: NetworkImage(link),
         radius: min(96, 96.sp),
       ),
     );

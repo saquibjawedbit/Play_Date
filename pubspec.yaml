@@ -56,6 +56,13 @@ dependencies:
   ntp: ^2.0.0
   carousel_slider: ^4.2.1
   hive: ^2.2.3
+  record: ^5.1.2
+  path_provider:
+  just_audio: ^0.9.39
+  path: ^1.9.0
+  swipe_to: ^1.0.6
+  cached_network_image: ^3.3.1
+  flutter_cache_manager: ^3.3.3
 
 dev_dependencies:
   flutter_test:

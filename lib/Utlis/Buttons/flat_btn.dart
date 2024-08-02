@@ -27,26 +27,33 @@ class _FlatBtnState extends State<FlatBtn> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
         padding: EdgeInsets.symmetric(
-            horizontal: min(44, 44.w), vertical: min(12.h, 12)),
+          horizontal: min(44, 44.w),
+          vertical: min(12.h, 12),
+        ),
+        constraints: const BoxConstraints(maxWidth: 280),
         decoration: BoxDecoration(
-            color: widget.color ?? const Color.fromARGB(255, 255, 208, 0),
-            border: Border.all(
-              width: 2,
-              color: Colors.black,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black,
-                spreadRadius: 0.2,
-                offset: Offset(7.5, 7.5),
-              )
-            ]),
-        child: Text(
-          widget.text,
-          style: TextStyle(
+          color: widget.color ?? const Color.fromARGB(255, 255, 208, 0),
+          border: Border.all(
+            width: 2,
             color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: min(32, 32.sp),
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black,
+              spreadRadius: 0.2,
+              offset: Offset(7.5, 7.5),
+            )
+          ],
+        ),
+        child: FittedBox(
+          child: Text(
+            widget.text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: min(32, 32.sp),
+            ),
           ),
         ),
       ),

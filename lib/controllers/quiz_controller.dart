@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ntp/ntp.dart';
-import 'package:play_dates/Screens/Quiz/leaderboard_screen.dart';
+import 'package:play_dates/Screens/Quiz/home_screen.dart';
+import 'package:play_dates/Screens/Quiz/match_screen.dart';
 import 'package:play_dates/Screens/Quiz/quest_end_screen.dart';
 import 'package:play_dates/Screens/Quiz/quiz_screen.dart';
 import 'package:play_dates/Utlis/Models/participants_model.dart';
@@ -23,7 +23,10 @@ class QuizController extends GetxController {
   int secondsElapsed = 0;
   int round = 1;
   int nextQuestion = 15;
-  int seconds = 0;
+  int dayRound = 1;
+  // int seconds = 0;
+
+  DateTime? startTime, endTime;
 
   var isQuiz = false.obs;
 
@@ -37,29 +40,31 @@ class QuizController extends GetxController {
   final UserController controller = Get.find();
 
   Future<void> loadData() async {
-    categoryRepo.createUser('contest', dummyData[0].toMap(), "1");
+    // categoryRepo.createUser("contest", dummyData[0].toMap(),
+    //     "${DateTime.now().year}y${DateTime.now().month}m${DateTime.now().day}");
     DateTime currentTime = await NTP.now();
     isQuiz.value = false;
-
-    DateTime startTime, endTime;
     if (currentTime.hour < 13 ||
         (currentTime.hour == 13 && currentTime.minute <= 12)) {
       startTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 13, 11);
       endTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 13, 12);
-    } else if (currentTime.hour < 14 ||
-        (currentTime.hour == 14 && currentTime.minute <= 45)) {
+      dayRound = 1;
+    } else if (currentTime.hour < 13 ||
+        (currentTime.hour == 13 && currentTime.minute <= 12)) {
       startTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 14, 44);
+          currentTime.year, currentTime.month, currentTime.day, 13, 11);
       endTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 14, 45);
-    } else if (currentTime.hour < 20 ||
-        (currentTime.hour == 20 && currentTime.minute <= 32)) {
+          currentTime.year, currentTime.month, currentTime.day, 13, 12);
+      dayRound = 2;
+    } else if (currentTime.hour < 23 ||
+        (currentTime.hour == 23 && currentTime.minute <= 12)) {
       startTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 20, 31, 00);
+          currentTime.year, currentTime.month, currentTime.day, 23, 11, 00);
       endTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 20, 32, 00);
+          currentTime.year, currentTime.month, currentTime.day, 23, 12, 00);
+      dayRound = 3;
     } else {
       startTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 13, 11);
@@ -67,45 +72,63 @@ class QuizController extends GetxController {
           currentTime.year, currentTime.month, currentTime.day, 13, 12);
     }
 
-    if (currentTime.isAfter(startTime) && currentTime.isBefore(endTime)) {
-      debugPrint("Quiz started at $startTime, Round: $round");
+    if (currentTime.isAfter(startTime!) && currentTime.isBefore(endTime!)) {
       isQuiz.value = true;
-      final models = await categoryRepo.fetchQuizModel(
-        startTime:
-            DateTime(currentTime.year, currentTime.month, currentTime.day),
-      );
-      if (models.isNotEmpty) {
-        quizModel = models[0];
-      } else {
-        debugPrint("Contest not loaded!");
-      }
+      timeLeft.value = "Play Now";
     } else {
       debugPrint("Next At $startTime");
-      if (startTime.isAfter(currentTime)) {
-        nextQuiz = startTime.difference(currentTime).inSeconds;
+      if (startTime!.isAfter(currentTime)) {
+        nextQuiz = startTime!.difference(currentTime).inSeconds;
       } else {
-        nextQuiz = currentTime.difference(startTime).inSeconds;
+        nextQuiz = currentTime.difference(startTime!).inSeconds;
       }
     }
   }
 
+  void waitForPlayers() async {
+    isQuiz.value = false;
+    DateTime currentTime = await NTP.now();
+    if (round != 1) {
+      endTime = endTime!.add(const Duration(minutes: 1, seconds: 5));
+    }
+    Duration offset = endTime!.difference(currentTime);
+    _elapsedTimer(() async {
+      int second = secondsElapsed % 60;
+      timeLeft.value =
+          "${second.toString().padLeft(2, '0')}s \nwaiting for players";
+      if (second <= 0) {
+        debugPrint("Quiz started at $endTime, Round: $round");
+        _timer!.cancel();
+        isQuiz.value = true;
+        if (round == 1) {
+          final models = await categoryRepo.fetchQuizDate(
+              id: "${DateTime.now().year}y${DateTime.now().month}m${DateTime.now().day}");
+          quizModel = models;
+        }
+
+        if (quizModel != null) {
+          nextPage();
+        } else {
+          debugPrint("Contest not loaded!");
+        }
+      }
+    }, offset.inSeconds);
+  }
+
   void registerUser() async {
     if (quizModel == null) return;
-    final id = controller.user!.id;
+    debugPrint("Writing data");
+    final id = controller.user!.id!;
     ParticipantModel model = ParticipantModel(
-      userRef: FirebaseFirestore.instance.collection('user').doc(id),
-      gender: 'M',
+      id: id,
+      gender: controller.user!.gender,
+      address: controller.user!.address,
       round1: answers[0],
       round2: answers[1],
       round3: answers[2],
     );
-    categoryRepo.createParticpant(
-        'contest', quizModel!.id!, 'player', model.toMap());
-  }
-
-  void getLeaderBoard() async {
-    List<ParticipantModel> players =
-        await categoryRepo.fetchPlayers(id: quizModel!.id!);
+    categoryRepo.addFriend(
+        'contest', quizModel!.id!, '$dayRound', id, model.toMap());
   }
 
   void start() {
@@ -125,7 +148,7 @@ class QuizController extends GetxController {
   }
 
   void _startTimer() {
-    seconds = 0;
+    int seconds = 0;
     const duration = Duration(seconds: 1);
     _timer = Timer.periodic(duration, (Timer timer) {
       int minute = seconds ~/ 60;
@@ -152,26 +175,63 @@ class QuizController extends GetxController {
     );
   }
 
-  void switchToLeaderBoard() {
-    int seconds = (secondsElapsed % 60);
+  //Starts next quest round
+  void _startNextRound() {
+    time.value = "${secondsElapsed.toString().padLeft(2, "0")} secs";
     if (secondsElapsed <= 0) {
       _timer!.cancel();
+      if (round != 1) {
+        waitForPlayers();
+      }
       Get.offAll(
-        () => const LeaderBoardScreen(),
+        () => const HomeScreen(),
       );
     }
-    time.value = "${seconds.toString().padLeft(2, '0')} secs";
   }
 
   void _elapsedTimer(Function onTimeEnd, int tTime) {
     if (_timer != null) _timer!.cancel();
-    time.value = "05 secs";
+    time.value = "${tTime.toString().padLeft(2, "0")} secs";
     secondsElapsed = tTime;
     const duration = Duration(seconds: 1);
     _timer = Timer.periodic(duration, (Timer timer) {
       onTimeEnd();
       secondsElapsed--;
     });
+  }
+
+  //When user answers all the four questions
+  void _onQuizEnd() async {
+    registerUser();
+    _qTimer!.cancel();
+    _timer!.cancel();
+    currentQuestion = -1;
+    round++;
+    round = max(round % 4, 1);
+    DateTime currentTime = await NTP.now();
+    DateTime resultTime = endTime!.add(
+      const Duration(minutes: 1, seconds: 2),
+    );
+
+    Duration deltaTime = resultTime.difference(currentTime);
+    if (round != 1) {
+      _elapsedTimer(_startNextRound, deltaTime.inSeconds);
+    } else {
+      _elapsedTimer(_switchToMatchScreen, deltaTime.inSeconds);
+    }
+    Get.offAll(() => QuestEndScreen());
+  }
+
+  void _switchToMatchScreen() async {
+    int seconds = secondsElapsed % 60;
+    if (secondsElapsed <= 0) {
+      _timer!.cancel();
+
+      Get.offAll(() => MatchScreen(
+            round: "$dayRound",
+          ));
+    }
+    time.value = "${seconds.toString().padLeft(2, '0')} secs";
   }
 
   void nextPage() {
@@ -183,14 +243,7 @@ class QuizController extends GetxController {
     question.value = "${(currentQuestion + 1).toString().padLeft(2, '0')}/04";
     percent = (currentQuestion + 1) / 4;
     if (currentQuestion >= 4) {
-      if (round == 3) registerUser();
-      _qTimer!.cancel();
-      _timer!.cancel();
-      _elapsedTimer(switchToLeaderBoard, 5);
-      Get.offAll(() => QuestEndScreen());
-      currentQuestion = -1;
-      round++;
-      round = max(round % 4, 1);
+      _onQuizEnd();
     } else if (quizModel != null) {
       if (round == 1) {
         _changeScreen(
@@ -217,7 +270,10 @@ class QuizController extends GetxController {
 
   void submitAns(int option) {
     answers[round - 1].add(option);
-    if (currentQuestion == 3) nextPage();
+    if (currentQuestion == 3) {
+      _qTimer!.cancel();
+      nextPage();
+    }
   }
 
   @override

@@ -85,9 +85,11 @@ class _QuizScreenState extends State<QuizScreen> {
                           color: Colors.white,
                           text: widget.questionData.answers[0],
                           onTap: () {
-                            setState(() {
-                              nextQuestionCountdown = true;
-                            });
+                            setState(
+                              () {
+                                nextQuestionCountdown = true;
+                              },
+                            );
                           },
                         ),
                         SizedBox(
@@ -98,9 +100,11 @@ class _QuizScreenState extends State<QuizScreen> {
                           color: Colors.white,
                           text: widget.questionData.answers[1],
                           onTap: () {
-                            setState(() {
-                              nextQuestionCountdown = true;
-                            });
+                            setState(
+                              () {
+                                nextQuestionCountdown = true;
+                              },
+                            );
                           },
                         ),
                         SizedBox(

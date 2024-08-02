@@ -18,6 +18,8 @@
 	</dict>
 </array>
 <!-- End of the Google Sign-in Section -->
+<key>NSMicrophoneUsageDescription</key>
+<string>Some message to describe why you need this permission</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Used to pick profile pictures</string>
 	<key>NSCameraUsageDescription</key>

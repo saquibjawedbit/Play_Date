@@ -78,23 +78,40 @@ class DbClient {
     }
   }
 
-  Future<List<DbRecord>> fetchPlayers({
+  Future<DbRecord> fetchSubCollectionById(
+      {required String collection,
+      required String id,
+      required String collection2,
+      required String collegeName}) async {
+    try {
+      final colRef = _firestore
+          .collection(collection)
+          .doc(id)
+          .collection(collection2)
+          .doc(collegeName);
+      final documents = await colRef.get();
+
+      return DbRecord(
+        id: documents.id,
+        data: documents.data()!,
+      );
+    } catch (err) {
+      throw Exception('Error adding document $err');
+    }
+  }
+
+  Future<DbRecord> fetchById({
     required String collection,
     required String id,
-    required String collection2,
   }) async {
     try {
-      final colRef =
-          _firestore.collection(collection).doc(id).collection(collection2);
+      final colRef = _firestore.collection(collection).doc(id);
       final documents = await colRef.get();
-      return documents.docs
-          .map(
-            (doc) => DbRecord(
-              id: doc.id,
-              data: doc.data(),
-            ),
-          )
-          .toList();
+
+      return DbRecord(
+        id: documents.id,
+        data: documents.data()!,
+      );
     } catch (err) {
       throw Exception('Error adding document $err');
     }

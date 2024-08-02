@@ -1,10 +1,7 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:play_dates/Screens/Chat/inbox_screen.dart';
-import 'package:play_dates/Screens/Profile/profile_screen.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
 import 'package:play_dates/Utlis/Widgets/nav_bar.dart';
 import 'package:play_dates/controllers/quiz_controller.dart';
@@ -27,12 +24,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _isLoading = true;
   Color? color;
 
-  final homeNavKey = GlobalKey<NavigatorState>();
-  final searchNavKey = GlobalKey<NavigatorState>();
-  final notificationNavKey = GlobalKey<NavigatorState>();
-  final profileNavKey = GlobalKey<NavigatorState>();
-  int selectedTab = 0;
-  List<NavModel> items = [];
+  int selectedTab = 1;
 
   @override
   void initState() {
@@ -83,8 +75,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ? const Center(child: CircularProgressIndicator.adaptive())
           : Stack(
               children: [
-                if (round != 2) _bannerOne(height, width),
-                if (round == 2) _lionImage(),
+                if (round == 1) _bannerOne(height, width),
+                if (round == 2) _lionImage('assets/06.png'),
+                if (round == 3) _humanImage(),
                 Padding(
                   padding: EdgeInsets.only(top: 120.h, left: 32.w, right: 32.w),
                   child: Column(
@@ -129,87 +122,40 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 Future.delayed(
                                   const Duration(milliseconds: 1000),
                                   () {
-                                    quizController.nextPage();
+                                    quizController.waitForPlayers();
                                   },
                                 );
                               },
                             );
                           },
-                          text: quizController.isQuiz.value
-                              ? "Play Now"
-                              : "${quizController.timeLeft}",
+                          text: quizController.timeLeft.value,
                           color: color,
                         ),
                       ),
                     ],
                   ),
                 ),
-                if (round != 2) _jokerImage(),
+                if (round == 1) _jokerImage(),
               ],
             ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: _floatActionBtn(),
       bottomNavigationBar: _navBar(),
+    );
+  }
+
+  Align _humanImage() {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Image.asset(
+        "assets/loading.png",
+        height: min(320.h, 320),
+        fit: BoxFit.cover,
+      ),
     );
   }
 
   NavBar _navBar() {
     return NavBar(
       pageIndex: selectedTab,
-      onTap: (index) {
-        if (index == 1) {
-          Get.to(
-            () => const ProfileScreen(),
-          );
-        }
-        if (index == 2) {
-          Get.to(
-            () => InboxScreen(
-              name: userController.user!.name,
-              contacts: userController.contacts,
-            ),
-          );
-        }
-      },
-    );
-  }
-
-  Padding _floatActionBtn() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton.large(
-            onPressed: () {},
-            backgroundColor: const Color.fromARGB(255, 244, 215, 56),
-            shape: const CircleBorder(
-              side: BorderSide(
-                color: Colors.black,
-              ),
-            ),
-            elevation: 10,
-            hoverColor: Colors.black,
-            hoverElevation: 20,
-            child: Image.asset(
-              'assets/play-icon.png',
-              fit: BoxFit.fill,
-              height: min(24, 24.h),
-            ),
-          ),
-          SizedBox(
-            height: min(2, 2.h),
-          ),
-          Text(
-            "Quests",
-            style: TextStyle(
-              fontSize: min(14, 14.sp),
-              color: Colors.black,
-              fontWeight: FontWeight.w700,
-            ),
-          )
-        ],
-      ),
     );
   }
 
@@ -226,11 +172,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Align _lionImage() {
+  Align _lionImage(String path) {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Image.asset(
-        'assets/06.png',
+        path,
         fit: BoxFit.cover,
         height: min(350, 350.h),
       ),
@@ -364,44 +310,14 @@ class TitleBanner extends StatelessWidget {
                 ],
               ),
               child: Stack(
-                children: round != 2
+                children: round == 1
                     ? questOneBanner(val)
-                    : [
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: OutlinedText(
-                            text: "The Secret",
-                            fontSize: min(48, 48.sp),
-                            textColor: const Color.fromARGB(255, 132, 215, 255),
-                            borderColor: Colors.black,
-                            offset: const Offset(-5, 5),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.center,
-                          child: OutlinedText(
-                            text: "Library",
-                            fontSize: min(78, 78.sp),
-                            textColor: const Color.fromARGB(255, 255, 151, 217),
-                            borderColor: Colors.black,
-                            offset: const Offset(5, 5),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Text(
-                            "Quest ${val[round - 1]}",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
-                              fontSize: min(28.sp, 28),
-                            ),
-                          ),
-                        ),
-                      ],
+                    : (round == 2
+                        ? _questTwoBanner(val)
+                        : _questThrreBanner(val)),
               ),
             ),
-            if (round != 2)
+            if (round == 1)
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 300),
                 top: selected ? 10 : 0,
@@ -418,6 +334,78 @@ class TitleBanner extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _questTwoBanner(List<String> val) {
+    return [
+      Align(
+        alignment: Alignment.topCenter,
+        child: OutlinedText(
+          text: "The Secret",
+          fontSize: min(48, 48.sp),
+          textColor: const Color.fromARGB(255, 132, 215, 255),
+          borderColor: Colors.black,
+          offset: const Offset(-5, 5),
+        ),
+      ),
+      Align(
+        alignment: Alignment.center,
+        child: OutlinedText(
+          text: "Library",
+          fontSize: min(78, 78.sp),
+          textColor: const Color.fromARGB(255, 255, 151, 217),
+          borderColor: Colors.black,
+          offset: const Offset(5, 5),
+        ),
+      ),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          "Quest ${val[round - 1]}",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w500,
+            fontSize: min(28.sp, 28),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _questThrreBanner(List<String> val) {
+    return [
+      Align(
+        alignment: Alignment.topCenter,
+        child: OutlinedText(
+          text: "Forest of",
+          fontSize: min(48, 48.sp),
+          textColor: const Color.fromARGB(255, 255, 138, 0),
+          borderColor: Colors.black,
+          offset: const Offset(-5, 5),
+        ),
+      ),
+      Align(
+        alignment: Alignment.center,
+        child: OutlinedText(
+          text: "T-icks",
+          fontSize: min(90, 90.sp),
+          textColor: const Color.fromARGB(255, 22, 219, 184),
+          borderColor: Colors.black,
+          offset: const Offset(5, 5),
+        ),
+      ),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          "Quest ${val[round - 1]}",
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w500,
+            fontSize: min(28.sp, 28),
+          ),
+        ),
+      ),
+    ];
   }
 
   List<Widget> questOneBanner(List<String> val) {
