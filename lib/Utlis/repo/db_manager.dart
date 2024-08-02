@@ -30,6 +30,22 @@ class DbManager {
     }
   }
 
+  Future<void> saveLastSessionTime(String userId) async {
+    final now = DateTime.now();
+    await FirebaseFirestore.instance
+        .collection('user')
+        .doc(userId)
+        .set({'lastSeen': now}, SetOptions(merge: true));
+    changeActiveSession(userId, false);
+  }
+
+  Future<void> changeActiveSession(String userId, bool isActive) async {
+    await FirebaseFirestore.instance
+        .collection('user')
+        .doc(userId)
+        .set({'isOnline': isActive}, SetOptions(merge: true));
+  }
+
   Future<List<QuizModel>> fetchQuizModel({required DateTime startTime}) async {
     try {
       final categoriesData = await dbClient.fetchOnly(
@@ -53,7 +69,7 @@ class DbManager {
     }
   }
 
-  Future<List<UserModel>> fetchUser({required String email}) async {
+  Future<UserModel?> fetchUser({required String email}) async {
     try {
       final categoriesData = await dbClient.fetchOnly(
         collection: 'user',
@@ -68,7 +84,8 @@ class DbManager {
             ),
           )
           .toList();
-      return categories;
+      if (categories.isEmpty) return null;
+      return categories[0];
     } catch (err) {
       throw Exception('Failed to fetch the user $err');
     }
@@ -95,6 +112,14 @@ class DbManager {
     }
   }
 
+  Stream<UserModel> getUserStream(String userId) {
+    return FirebaseFirestore.instance
+        .collection('user')
+        .doc(userId)
+        .snapshots()
+        .map((doc) => UserModel.fromJson(doc.data() as Map<String, dynamic>));
+  }
+
   Future<void> cacheContacts(List<ContactModel> contacts) async {
     var box = await Hive.openBox('contactsBox');
     await box.put(
@@ -110,22 +135,21 @@ class DbManager {
         .toList();
   }
 
-  Future<List<ContactModel>> fetchContacts({required String id}) async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+  Stream<List<ContactModel>> fetchContacts({required String id}) {
+    final snap = FirebaseFirestore.instance
         .collection('user')
         .doc(id)
         .collection('contacts')
-        .get();
+        .snapshots();
 
-    List<ContactModel> contacts = querySnapshot.docs.map(
-      (doc) {
-        return ContactModel.fromDocument(doc, doc.id);
-      },
-    ).toList();
-
+    final data = snap.map((doc) {
+      return doc.docs.map((data) {
+        return ContactModel.fromJson(data.data(), id: data.id);
+      }).toList();
+    });
     //cacheContacts(contacts);
 
-    return contacts;
+    return data;
   }
 
   Future<void> createUser(
@@ -146,6 +170,20 @@ class DbManager {
         nextCollection: nextCollection,
         data: data,
       );
+    } catch (err) {
+      throw Exception('Failed to create the categories $err');
+    }
+  }
+
+  Future<void> addFriend(String collection, String id, String subCollection,
+      String subId, Map<String, dynamic> data) async {
+    try {
+      await dbClient.addFriend(
+          collection: collection,
+          id: id,
+          subCollection: subCollection,
+          subId: subId,
+          data: data);
     } catch (err) {
       throw Exception('Failed to create the categories $err');
     }

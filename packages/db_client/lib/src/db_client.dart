@@ -22,6 +22,25 @@ class DbClient {
     }
   }
 
+  Future<void> addFriend({
+    required String collection,
+    required String id,
+    required String subCollection,
+    required String subId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      await _firestore
+          .collection(collection)
+          .doc(id)
+          .collection(subCollection)
+          .doc(subId)
+          .set(data);
+    } catch (err) {
+      throw Exception('Error adding contact $err');
+    }
+  }
+
   Future<String> addInCollection({
     required String collection,
     required String id,

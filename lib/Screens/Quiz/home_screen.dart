@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:play_dates/Screens/Chat/inbox_screen.dart';
-import 'package:play_dates/Screens/profile/profile_screen.dart';
+import 'package:play_dates/Screens/Profile/profile_screen.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
 import 'package:play_dates/Utlis/Widgets/nav_bar.dart';
 import 'package:play_dates/controllers/quiz_controller.dart';
 import 'package:play_dates/controllers/user_controller.dart';
+import 'package:play_dates/main.dart';
 import '../../Utlis/Buttons/flat_btn.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final QuizController quizController = Get.put(QuizController());
   final UserController userController = Get.find();
 
@@ -36,25 +37,25 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // items = [
-    //   NavModel(
-    //     page: const HomeScreen(),
-    //     navKey: homeNavKey,
-    //   ),
-    //   NavModel(
-    //     page: const HomeScreen(),
-    //     navKey: searchNavKey,
-    //   ),
-    //   NavModel(
-    //     page: const HomeScreen(),
-    //     navKey: notificationNavKey,
-    //   ),
-    //   NavModel(
-    //     page: const HomeScreen(),
-    //     navKey: profileNavKey,
-    //   ),
-    // ];
     start();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    String uid = userController.user!.id!;
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      categoryRepo.saveLastSessionTime(uid);
+    } else {
+      categoryRepo.changeActiveSession(uid, true);
+    }
   }
 
   void start() async {
@@ -165,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Get.to(
             () => InboxScreen(
               name: userController.user!.name,
-              contacts: userController.contacts ?? [],
+              contacts: userController.contacts,
             ),
           );
         }

@@ -121,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fontSize: min(36, 36.sp),
                           textColor: Colors.white,
                           borderColor: Colors.black,
-                          offset: Offset(-5, 5),
+                          offset: const Offset(-5, 5),
                         ),
                       ),
                       Positioned(

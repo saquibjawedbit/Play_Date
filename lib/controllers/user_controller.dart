@@ -21,23 +21,41 @@ class UserController extends GetxController {
   var loading = true.obs;
 
   UserModel? user;
-  List<ContactModel>? contacts;
+  Stream<List<ContactModel>>? contacts;
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   void getUser() async {
     String email = FirebaseAuth.instance.currentUser!.email.toString();
-    List<UserModel> data = await categoryRepo.fetchUser(email: email);
-    if (data.isNotEmpty) user = data[0];
+    UserModel? data = await categoryRepo.fetchUser(email: email);
+    if (data != null) user = data;
     loading.value = false;
+    //addFriend();
     if (user != null) getContacts();
   }
 
   void getContacts() async {
-    contacts = await categoryRepo.fetchContacts(
+    contacts = categoryRepo.fetchContacts(
       id: user!.id!,
     );
     //print(contacts);
+  }
+
+  Future<void> addFriend() async {
+    String id = _firebaseAuth.currentUser!.uid;
+    String fId = "SkxU63QxXWaLiHl30hysHhNzc142";
+    ContactModel model = ContactModel(
+      name: "Saquib",
+      isSeen: false,
+      profileUrl:
+          "https://firebasestorage.googleapis.com/v0/b/play-date-6570f.appspot.com/o/images%2F17209354737247430?alt=media&token=862ee22d-5c72-4f36-a1e1-68a04a1076af",
+    );
+    dbClient.addFriend(
+        collection: "user",
+        id: fId,
+        subCollection: "contacts",
+        subId: id,
+        data: model.toMap());
   }
 
   void updateGender(bool male) {

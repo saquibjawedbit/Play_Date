@@ -5,6 +5,8 @@ class UserModel {
   final String name;
   final String email;
   final double height;
+  final bool? isOnline;
+  final Timestamp? lastSeen;
   final String address;
   final String gender;
   final DateTime dob;
@@ -12,6 +14,8 @@ class UserModel {
 
   UserModel({
     this.id,
+    this.isOnline,
+    this.lastSeen,
     required this.name,
     required this.dob,
     required this.email,
@@ -31,6 +35,8 @@ class UserModel {
       gender: json['gender'],
       imageUrls: List<String>.from(json['imageUrls']),
       dob: (json['dob'] as Timestamp).toDate(),
+      lastSeen: json['lastSeen'] as Timestamp,
+      isOnline: json['isOnline'] as bool,
     );
   }
 
@@ -43,6 +49,8 @@ class UserModel {
       'gender': gender,
       'imageUrls': imageUrls,
       'dob': Timestamp.fromDate(dob),
+      'lastSeen': lastSeen ?? Timestamp.now(),
+      'isOnline': isOnline ?? false,
     };
   }
 
@@ -52,5 +60,21 @@ class UserModel {
     int delta = ((date.month <= dob.month && date.day < dob.day) ? 1 : 0);
 
     return (ageDiff - delta);
+  }
+
+  String get lastActive {
+    if (isOnline!) return "Active";
+
+    final prevTime = lastSeen!.toDate();
+    final currTime = DateTime.now();
+    final delta = currTime.difference(prevTime);
+
+    if (delta.inDays != 0) {
+      return "Active ${delta.inDays.toString()} days ago";
+    } else if (delta.inHours != 0) {
+      return "Active ${delta.inHours.toString()} hours ago";
+    } else {
+      return "Active ${delta.inMinutes.toString()} min ago";
+    }
   }
 }

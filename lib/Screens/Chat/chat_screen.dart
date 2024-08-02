@@ -1,17 +1,29 @@
+import 'dart:io';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:play_dates/Screens/Chat/inbox_screen.dart';
+import 'package:play_dates/Utlis/Buttons/flat_btn.dart';
 import 'package:play_dates/Utlis/Models/contact_model.dart';
+import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/controllers/service/chat/chat_service.dart';
+import 'package:play_dates/main.dart';
+
+import '../../Utlis/Widgets/chat_bubble.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
     super.key,
     required this.contact,
+    required this.openCamera,
   });
 
   final ContactModel contact;
+  final bool openCamera;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -21,13 +33,41 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ChatService _chatService = ChatService();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final ScrollController _scrollController = ScrollController();
 
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
       await _chatService.sendMessage(
-          widget.contact.uid!, _messageController.text);
+        widget.contact.uid!,
+        _messageController.text,
+        'text',
+      );
       _messageController.clear();
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(
+        _scrollController.position.maxScrollExtent,
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openCamera) {
+      _pickImage(ImageSource.camera);
+    }
+    _chatService.messageSeen(
+        _firebaseAuth.currentUser!.uid, widget.contact.uid!);
   }
 
   @override
@@ -51,6 +91,29 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  StreamBuilder<ContactModel> _messageSeen() {
+    return StreamBuilder(
+      stream: _chatService.isMessageSeen(
+          _firebaseAuth.currentUser!.uid, widget.contact.uid!),
+      builder: (context, snapshot) {
+        String value = "";
+
+        if (snapshot.connectionState == ConnectionState.active &&
+            snapshot.data!.isSeen == true) {
+          value = "Seen";
+        }
+
+        return Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
+          child: Text(
+            value,
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildMessageItem(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
@@ -65,48 +128,20 @@ class _ChatScreenState extends State<ChatScreen> {
 
     bool myMessage = (data['senderId'] == _firebaseAuth.currentUser!.uid);
 
-    return Container(
+    _chatService.messageSeen(
+        _firebaseAuth.currentUser!.uid, widget.contact.uid!);
+
+    return _textBubble(alignment, myMessage, color, data);
+  }
+
+  Widget _textBubble(Alignment alignment, bool myMessage, Color color,
+      Map<String, dynamic> data) {
+    return ChatBubble(
       alignment: alignment,
-      margin: const EdgeInsets.only(top: 20, bottom: 12),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!myMessage)
-            ProfileIcon(
-              url: widget.contact.profileUrl,
-              radius: 20,
-            ),
-          if (!myMessage)
-            const SizedBox(
-              width: 10,
-            ),
-          Container(
-            padding:
-                const EdgeInsets.only(top: 12, bottom: 12, left: 24, right: 12),
-            constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.7),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(27.18),
-              border: Border.all(color: Colors.black, width: 2),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black,
-                  offset: Offset(-1, 5),
-                ),
-              ],
-            ),
-            child: Text(
-              data['message'],
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
+      myMessage: myMessage,
+      color: color,
+      data: data,
+      profileUrl: widget.contact.profileUrl,
     );
   }
 
@@ -123,10 +158,16 @@ class _ChatScreenState extends State<ChatScreen> {
           return const Text("Loading...");
         }
 
+        List<Widget> messageItems = snapshot.data!.docs.reversed
+            .map((document) => _buildMessageItem(document))
+            .toList();
+
+        messageItems.insert(0, _messageSeen());
+
         return ListView(
-          children: snapshot.data!.docs
-              .map((document) => _buildMessageItem(document))
-              .toList(),
+          controller: _scrollController,
+          reverse: true,
+          children: messageItems,
         );
       },
     );
@@ -142,10 +183,10 @@ class _ChatScreenState extends State<ChatScreen> {
       maxLines: 5,
       minLines: 1,
       textAlignVertical: TextAlignVertical.center,
-      style: const TextStyle(
+      style: TextStyle(
         color: Colors.black,
         fontWeight: FontWeight.w500,
-        fontSize: 20,
+        fontSize: min(20, 20.sp),
       ),
       decoration: InputDecoration(
         filled: true,
@@ -155,36 +196,46 @@ class _ChatScreenState extends State<ChatScreen> {
           vertical: 20,
         ),
         hintText: "Message...",
-        hintStyle: const TextStyle(
+        hintStyle: TextStyle(
           color: Colors.black,
           fontWeight: FontWeight.w500,
-          fontSize: 20,
+          fontSize: min(20, 20.sp),
         ),
-        prefixIcon: const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Icon(
-            Icons.camera_alt_outlined,
-            size: 36,
+        prefixIcon: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: GestureDetector(
+            onTap: () {
+              _pickImage(ImageSource.camera);
+            },
+            child: Icon(
+              Icons.camera_alt_outlined,
+              size: min(36, 36.sp),
+            ),
           ),
         ),
-        suffixIcon: const Row(
+        suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.mic_outlined,
               color: Colors.black,
-              size: 36,
+              size: min(36, 36.w),
             ),
             SizedBox(
-              width: 5,
+              width: min(5, 5.w),
             ),
-            Icon(
-              Icons.image_outlined,
-              color: Colors.black,
-              size: 36,
+            GestureDetector(
+              onTap: () {
+                _pickImage(ImageSource.gallery);
+              },
+              child: Icon(
+                Icons.image_outlined,
+                color: Colors.black,
+                size: min(36, 36.w),
+              ),
             ),
             SizedBox(
-              width: 10,
+              width: min(10, 10.w),
             ),
           ],
         ),
@@ -206,6 +257,19 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Future _pickImage(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? images = await picker.pickImage(
+        source: source, imageQuality: 40, maxHeight: 720, maxWidth: 720);
+
+    if (images != null) {
+      bool send = await Get.to(() => PickedImageScreen(
+            imagePath: File(images.path),
+          ));
+      if (send) _chatService.sendImage(widget.contact.uid!, File(images.path));
+    }
+  }
+
   AppBar appBar() {
     return AppBar(
       toolbarHeight: 70,
@@ -215,7 +279,7 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           ProfileIcon(
             url: widget.contact.profileUrl,
-            radius: 24,
+            radius: min(24, 24.w),
           ),
           const SizedBox(
             width: 8,
@@ -225,32 +289,101 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Text(
                 widget.contact.name,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.black,
-                  fontSize: 20,
+                  fontSize: min(20, 20.sp),
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              Text(
-                widget.contact.getTime(),
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 65, 65, 65),
-                  fontSize: 17,
-                  fontWeight: FontWeight.w400,
-                ),
+              StreamBuilder<UserModel>(
+                stream: categoryRepo.getUserStream(widget.contact.uid!),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting ||
+                      snapshot.hasData == false) {
+                    return const Text("");
+                  }
+                  return Text(
+                    snapshot.data!.lastActive,
+                    style: TextStyle(
+                      color: const Color.fromARGB(255, 65, 65, 65),
+                      fontSize: min(17, 17.sp),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  );
+                },
               ),
             ],
           ),
           const Spacer(),
           IconButton(
             onPressed: () {},
-            icon: const Icon(
+            icon: Icon(
               Icons.more_vert,
-              size: 36,
-              color: Color.fromARGB(255, 107, 107, 107),
+              size: min(36, 36.h),
+              color: const Color.fromARGB(255, 107, 107, 107),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class PickedImageScreen extends StatelessWidget {
+  const PickedImageScreen({
+    super.key,
+    required this.imagePath,
+  });
+
+  final File imagePath;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            child: Image.file(
+              imagePath,
+              fit: BoxFit.contain,
+            ),
+          ),
+          SizedBox(
+            height: min(20, 20.h),
+          ),
+          FlatBtn(
+            onTap: () {
+              Get.back(result: true);
+            },
+            text: "SEND",
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ImageScreen extends StatelessWidget {
+  const ImageScreen({
+    super.key,
+    required this.imagePath,
+  });
+
+  final String imagePath;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: SizedBox(
+          child: Image.network(
+            imagePath,
+            fit: BoxFit.contain,
+          ),
+        ),
       ),
     );
   }

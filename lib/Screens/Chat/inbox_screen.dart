@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:play_dates/Screens/Chat/chat_screen.dart';
 import 'package:play_dates/Utlis/Models/contact_model.dart';
@@ -7,7 +10,7 @@ class InboxScreen extends StatelessWidget {
   const InboxScreen({super.key, required this.name, required this.contacts});
 
   final String name;
-  final List<ContactModel> contacts;
+  final Stream<List<ContactModel>>? contacts;
 
   @override
   Widget build(BuildContext context) {
@@ -18,57 +21,106 @@ class InboxScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         title: Text(
           name,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.black,
-            fontSize: 24,
+            fontSize: min(24, 24.sp),
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      body: ListView.builder(
-        itemCount: contacts.length + 1,
-        itemBuilder: (builder, index) {
-          if (index == 0) return searchBtn();
-          return ListTile(
-            onTap: () {
-              Get.to(
-                () => ChatScreen(
-                  contact: contacts[index - 1],
-                ),
-              );
-            },
-            visualDensity: const VisualDensity(vertical: 2, horizontal: -4),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-            isThreeLine: true,
-            leading: ProfileIcon(
-              radius: 32,
-              url: contacts[index - 1].profileUrl,
+      body: StreamBuilder<List<ContactModel>>(
+          stream: contacts,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: Text("Loading"));
+            }
+            if (snapshot.hasData == false) {
+              return const Text("No contacts");
+            }
+
+            return _chatItemBuilder(snapshot);
+          }),
+    );
+  }
+
+  ListView _chatItemBuilder(AsyncSnapshot<List<ContactModel>> snapshot) {
+    return ListView.builder(
+      itemCount: snapshot.data!.length + 1,
+      itemBuilder: (builder, index) {
+        if (index == 0) return searchBtn();
+        return _chatItem(snapshot, index);
+      },
+    );
+  }
+
+  Widget _chatItem(AsyncSnapshot<List<ContactModel>> snapshot, int index) {
+    return InkWell(
+      onTap: () {
+        Get.to(
+          () => ChatScreen(
+            contact: snapshot.data![index - 1],
+            openCamera: false,
+          ),
+        );
+      },
+      child: ListTile(
+        visualDensity: const VisualDensity(vertical: 2, horizontal: -4),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+        isThreeLine: false,
+        leading: ProfileIcon(
+          radius: min(32, 32.w),
+          url: snapshot.data![index - 1].profileUrl,
+        ),
+        subtitle: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              snapshot.data![index - 1].lastMessage ?? "",
             ),
-            subtitle: Text(contacts[index - 1].lastMessage ?? ""),
-            subtitleTextStyle: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w400,
-              fontSize: 16,
+            const SizedBox(
+              width: 10,
             ),
-            title: Text(
-              contacts[index - 1].name,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            minLeadingWidth: 1,
-            trailing: const Icon(
-              Icons.camera_alt_rounded,
-              color: Colors.black,
-              size: 36,
-            ),
-          );
-        },
+            if (!snapshot.data![index - 1].isSeen)
+              const CircleAvatar(
+                backgroundColor: Colors.blue,
+                radius: 5,
+              )
+          ],
+        ),
+        subtitleTextStyle: TextStyle(
+          color: Colors.black,
+          fontWeight: !snapshot.data![index - 1].isSeen
+              ? FontWeight.w700
+              : FontWeight.w400,
+          fontSize: min(16, 16.sp),
+        ),
+        title: Text(
+          snapshot.data![index - 1].name,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: min(20, 20.sp),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        minLeadingWidth: 1,
+        trailing: GestureDetector(
+          onTap: () => _sendImage(snapshot.data![index - 1]),
+          child: Icon(
+            Icons.camera_alt_rounded,
+            color: Colors.black,
+            size: min(36, 36.sp),
+          ),
+        ),
       ),
     );
+  }
+
+  void _sendImage(ContactModel contact) {
+    Get.to(() => ChatScreen(
+          contact: contact,
+          openCamera: true,
+        ));
   }
 
   Padding searchBtn() {
@@ -86,9 +138,9 @@ class InboxScreen extends StatelessWidget {
           ],
         ),
         child: TextField(
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.black,
-            fontSize: 18,
+            fontSize: min(18, 18.sp),
             fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
@@ -109,14 +161,14 @@ class InboxScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             hintText: "Search",
-            hintStyle: const TextStyle(
+            hintStyle: TextStyle(
               color: Colors.black,
-              fontSize: 18,
+              fontSize: min(18, 18.sp),
             ),
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.search,
               color: Colors.black,
-              size: 36,
+              size: min(36, 36.h),
             ),
           ),
         ),
@@ -137,7 +189,7 @@ class ProfileIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Ink(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(

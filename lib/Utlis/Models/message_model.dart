@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessageModel {
+  final String type;
   final String senderId;
-  final String senderEmail;
   final String receiverId;
   final String message;
   final Timestamp timestamp;
 
   MessageModel({
+    required this.type,
     required this.senderId,
-    required this.senderEmail,
     required this.receiverId,
     required this.message,
     required this.timestamp,
@@ -17,8 +17,8 @@ class MessageModel {
 
   Map<String, dynamic> toMap() {
     return {
+      "type": type.toLowerCase(),
       "senderId": senderId,
-      "senderEmail": senderEmail,
       "receiverId": receiverId,
       "message": message,
       "timestamp": timestamp,

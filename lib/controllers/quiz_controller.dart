@@ -37,9 +37,10 @@ class QuizController extends GetxController {
   final UserController controller = Get.find();
 
   Future<void> loadData() async {
-    //categoryRepo.createCategories('contest', dummyData[0].toMap());
+    categoryRepo.createUser('contest', dummyData[0].toMap(), "1");
     DateTime currentTime = await NTP.now();
     isQuiz.value = false;
+
     DateTime startTime, endTime;
     if (currentTime.hour < 13 ||
         (currentTime.hour == 13 && currentTime.minute <= 12)) {
@@ -47,12 +48,12 @@ class QuizController extends GetxController {
           currentTime.year, currentTime.month, currentTime.day, 13, 11);
       endTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 13, 12);
-    } else if (currentTime.hour < 17 ||
-        (currentTime.hour == 17 && currentTime.minute <= 55)) {
+    } else if (currentTime.hour < 14 ||
+        (currentTime.hour == 14 && currentTime.minute <= 45)) {
       startTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 17, 55);
+          currentTime.year, currentTime.month, currentTime.day, 14, 44);
       endTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 17, 56);
+          currentTime.year, currentTime.month, currentTime.day, 14, 45);
     } else if (currentTime.hour < 20 ||
         (currentTime.hour == 20 && currentTime.minute <= 32)) {
       startTime = DateTime(
