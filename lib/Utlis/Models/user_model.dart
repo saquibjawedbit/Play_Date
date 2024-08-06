@@ -11,6 +11,7 @@ class UserModel {
   final String gender;
   final DateTime dob;
   final List<String> imageUrls;
+  final int matches;
 
   UserModel({
     this.id,
@@ -23,6 +24,7 @@ class UserModel {
     required this.address,
     required this.gender,
     required this.imageUrls,
+    required this.matches,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json, {String? id}) {
@@ -37,6 +39,7 @@ class UserModel {
       dob: (json['dob'] as Timestamp).toDate(),
       lastSeen: json['lastSeen'] as Timestamp,
       isOnline: json['isOnline'] as bool,
+      matches: json['matches'] ?? 0,
     );
   }
 
@@ -51,6 +54,7 @@ class UserModel {
       'dob': Timestamp.fromDate(dob),
       'lastSeen': lastSeen ?? Timestamp.now(),
       'isOnline': isOnline ?? false,
+      'matches': matches,
     };
   }
 

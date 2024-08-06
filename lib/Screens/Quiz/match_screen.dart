@@ -14,23 +14,41 @@ import 'package:play_dates/Utlis/Models/result_model.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
 import 'package:play_dates/Utlis/Widgets/custom_dialog_box.dart';
+import 'package:play_dates/Utlis/Widgets/nav_bar.dart';
 import 'package:play_dates/controllers/user_controller.dart';
 import 'package:play_dates/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// ignore: must_be_immutable
-class MatchScreen extends StatelessWidget {
-  MatchScreen({
+class MatchScreen extends StatefulWidget {
+  const MatchScreen({
     super.key,
     required this.round,
   });
 
   final String round;
 
+  @override
+  State<MatchScreen> createState() => _MatchScreenState();
+}
+
+class _MatchScreenState extends State<MatchScreen> {
   late bool match;
 
   UserModel? user;
 
   final UserController userController = Get.find();
+
+  @override
+  void initState() {
+    setData();
+    super.initState();
+  }
+
+  void setData() async {
+    userController.todaysQuest += 1;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt("todaysQuest", userController.todaysQuest);
+  }
 
   void _chat() async {
     ContactModel newChat = ContactModel(
@@ -94,7 +112,7 @@ class MatchScreen extends StatelessWidget {
                 stream: categoryRepo.fetchPlayers(
                   id: "${DateTime.now().year}y${DateTime.now().month}m${DateTime.now().day}",
                   clgName: userController.user!.address,
-                  round: round,
+                  round: widget.round,
                 ),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting ||
@@ -108,7 +126,7 @@ class MatchScreen extends StatelessWidget {
                     children: [
                       const AppTitle(),
                       SizedBox(
-                        height: min(36, 36.h),
+                        height: min(24, 24.h),
                       ),
                       if (match)
                         RichText(
@@ -140,7 +158,7 @@ class MatchScreen extends StatelessWidget {
                           ),
                         ),
                       SizedBox(
-                        height: min(30, 30.h),
+                        height: min(18, 18.h),
                       ),
                       if (match) matchWidget(),
                       if (!match)
@@ -229,6 +247,7 @@ class MatchScreen extends StatelessWidget {
                 }),
           ),
         ),
+        bottomNavigationBar: const NavBar(pageIndex: 1),
       ),
     );
   }

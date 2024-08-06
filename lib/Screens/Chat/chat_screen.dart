@@ -40,6 +40,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final ChatController chatController = Get.put(ChatController());
   DocumentSnapshot? _lastDocument;
 
+  String? latestId;
+
   @override
   void initState() {
     super.initState();
@@ -54,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _onScroll() async {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      print("loading");
+      debugPrint("Loading...");
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
           await chatController.getOldMessages(
               FirebaseAuth.instance.currentUser!.uid,
@@ -138,7 +140,12 @@ class _ChatScreenState extends State<ChatScreen> {
       stream: chatController.isMessageSeen(
           _firebaseAuth.currentUser!.uid, widget.contact.uid!),
       builder: (context, snapshot) {
-        String value = "Seen";
+        String value = "    ";
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox();
+        }
+
         if (snapshot.hasData == false) {
           return SizedBox(
             height: MediaQuery.of(context).size.height - 200,
@@ -208,9 +215,13 @@ class _ChatScreenState extends State<ChatScreen> {
         }
 
         _lastDocument = snapshot.data!.docs.lastOrNull;
-        if (chatController.messageItems.isNotEmpty) {
+        String id = snapshot.data!.docs.first.id;
+        if (chatController.messageItems.isNotEmpty && id != latestId) {
+          latestId = id;
           chatController.messageItems.insert(0, snapshot.data!.docs.first);
         } else {
+          latestId = snapshot.data!.docs.first.id;
+          chatController.messageItems.clear();
           chatController.messageItems
               .addAll(snapshot.data!.docs.map((document) {
             return document;

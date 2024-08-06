@@ -10,6 +10,7 @@ import 'package:play_dates/Utlis/Models/contact_model.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/controllers/service/cache_manager.dart';
 import 'package:play_dates/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserController extends GetxController {
   var name = '';
@@ -21,17 +22,27 @@ class UserController extends GetxController {
   var gender = "male";
   var loading = true.obs;
 
+  int todaysQuest = 0;
+
   UserModel? user;
   Stream<List<ContactModel>>? contacts;
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  void getUser() async {
-    String id = FirebaseAuth.instance.currentUser!.uid.toString();
-    UserModel? data = await categoryRepo.fetchUser(id: id);
-    if (data != null) user = data;
-    loading.value = false;
-    //addFriend();
+  Future<void> getUser() async {
+    loading.value = true; // Set loading to true at the start
+    try {
+      String id = FirebaseAuth.instance.currentUser!.uid.toString();
+      UserModel? data = await categoryRepo.fetchUser(id: id);
+      if (data != null) {
+        user = data;
+      }
+    } finally {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      todaysQuest = prefs.getInt("todaysQuest") ?? 0;
+      loading.value =
+          false; // Ensure loading is set to false after fetching data
+    }
   }
 
   void updateGender(bool male) {
@@ -73,6 +84,7 @@ class UserController extends GetxController {
       address: address,
       gender: gender,
       imageUrls: imageUrls,
+      matches: 0,
     );
     categoryRepo.createUser(
       'user',
@@ -92,6 +104,7 @@ class UserController extends GetxController {
       address: user!.address,
       gender: user!.gender,
       imageUrls: imageUrls,
+      matches: user!.matches,
     );
     categoryRepo.createUser(
       'user',

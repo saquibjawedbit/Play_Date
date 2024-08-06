@@ -81,7 +81,8 @@ class DbManager {
       );
       return categories;
     } catch (err) {
-      throw Exception('Failed to fetch the user $err');
+      return null;
+      //throw Exception('Failed to fetch the user $err');
     }
   }
 

@@ -113,14 +113,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               _selected = true;
                             });
                             Future.delayed(
-                              const Duration(milliseconds: 1000),
+                              const Duration(milliseconds: 300),
                               () {
                                 setState(() {
                                   color = Colors.white;
                                   _selected = false;
                                 });
                                 Future.delayed(
-                                  const Duration(milliseconds: 1000),
+                                  const Duration(milliseconds: 100),
                                   () {
                                     quizController.waitForPlayers();
                                   },

@@ -8,9 +8,9 @@ import 'package:play_dates/Screens/Quiz/match_screen.dart';
 import 'package:play_dates/Utlis/Colors/theme_color.dart';
 import 'package:play_dates/Utlis/Models/user_model.dart';
 import 'package:play_dates/Utlis/Paints/outlined_text.dart';
+import 'package:play_dates/Utlis/Widgets/nav_bar.dart';
 import 'package:play_dates/controllers/service/cache_manager.dart';
 import 'package:play_dates/controllers/user_controller.dart';
-
 import '../../Utlis/Paints/profile_painter.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -34,9 +34,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         body: CustomPaint(
           painter: ProfilePainter(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 24,
-              horizontal: 0,
+            padding: const EdgeInsets.only(
+              top: 12,
             ),
             child: Center(
               child: Column(
@@ -195,6 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
+        bottomNavigationBar: const NavBar(pageIndex: 0),
       ),
     );
   }
@@ -210,7 +210,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             user!.imageUrls[index],
             cacheManager: CustomCacheManager.instance,
           ),
-          fit: BoxFit.fill,
+          fit: BoxFit.cover,
         ),
         border: Border.all(
           color: Colors.black,
@@ -224,7 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           )
         ],
       ),
-      height: min(450, 450.h),
+      height: min(400, 400.h),
       width: min(320, 320.h),
     );
   }
@@ -259,7 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fit: BoxFit.fill,
                         ),
                         Text(
-                          "You performed in 2 quests today",
+                          "You performed in ${controller.todaysQuest} quests today",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -276,7 +276,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fit: BoxFit.fill,
                         ),
                         Text(
-                          "You have 3 matches we are proud!",
+                          "You have ${controller.user!.matches} matches we are proud!",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,

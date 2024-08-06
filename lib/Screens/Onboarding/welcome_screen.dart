@@ -10,6 +10,8 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AuthService authService = AuthService();
+    authService.checkInstallationId();
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -57,7 +59,7 @@ class WelcomeScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                AuthService().signInWithGoogle();
+                authService.signInWithGoogle();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,

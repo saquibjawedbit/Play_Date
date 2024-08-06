@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:play_dates/Screens/Quiz/match_screen.dart';
@@ -35,12 +38,12 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const OutlinedText(
+            OutlinedText(
               text: "Save your changes!",
-              fontSize: 31,
-              textColor: Color.fromARGB(255, 255, 208, 0),
+              fontSize: min(31, 31.sp),
+              textColor: const Color.fromARGB(255, 255, 208, 0),
               borderColor: Colors.black,
-              offset: Offset(2, 5),
+              offset: const Offset(2, 5),
               height: 1,
             ),
             const SizedBox(
@@ -116,7 +119,7 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
               children: [
                 const AppTitle(),
                 const SizedBox(
-                  height: 20,
+                  height: 10,
                 ),
                 Text(
                   "Wanna change you photoes?",
@@ -135,7 +138,7 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                 Expanded(
                   child: GridView.count(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 20,
+                    mainAxisSpacing: 10,
                     crossAxisSpacing: 40,
                     childAspectRatio: 2 / 2.5,
                     children: [
@@ -151,7 +154,8 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                               image: (i < _selectedImage.length)
                                   ? DecorationImage(
                                       image: FileImage(
-                                          File(_selectedImage[i].path)),
+                                        File(_selectedImage[i].path),
+                                      ),
                                       fit: BoxFit.fill,
                                     )
                                   : null,

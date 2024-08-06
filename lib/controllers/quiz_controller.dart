@@ -40,23 +40,25 @@ class QuizController extends GetxController {
   final UserController controller = Get.find();
 
   Future<void> loadData() async {
-    // categoryRepo.createUser("contest", dummyData[0].toMap(),
-    //     "${DateTime.now().year}y${DateTime.now().month}m${DateTime.now().day}");
+    categoryRepo.createUser("contest", dummyData[0].toMap(),
+        "${DateTime.now().year}y${DateTime.now().month}m${DateTime.now().day}");
+
     DateTime currentTime = await NTP.now();
     isQuiz.value = false;
     if (currentTime.hour < 13 ||
         (currentTime.hour == 13 && currentTime.minute <= 12)) {
+      controller.todaysQuest = 0;
       startTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 13, 11);
       endTime = DateTime(
           currentTime.year, currentTime.month, currentTime.day, 13, 12);
       dayRound = 1;
-    } else if (currentTime.hour < 13 ||
-        (currentTime.hour == 13 && currentTime.minute <= 12)) {
+    } else if (currentTime.hour < 17 ||
+        (currentTime.hour == 17 && currentTime.minute <= 56)) {
       startTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 13, 11);
+          currentTime.year, currentTime.month, currentTime.day, 17, 55);
       endTime = DateTime(
-          currentTime.year, currentTime.month, currentTime.day, 13, 12);
+          currentTime.year, currentTime.month, currentTime.day, 17, 56);
       dayRound = 2;
     } else if (currentTime.hour < 23 ||
         (currentTime.hour == 23 && currentTime.minute <= 12)) {
@@ -86,6 +88,7 @@ class QuizController extends GetxController {
   }
 
   void waitForPlayers() async {
+    controller.todaysQuest += 1;
     isQuiz.value = false;
     DateTime currentTime = await NTP.now();
     if (round != 1) {

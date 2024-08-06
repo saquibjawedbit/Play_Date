@@ -24,7 +24,7 @@ class NavBar extends StatelessWidget {
       "assets/chat_icon.png",
       "assets/discover.png"
     ];
-    final labels = ["profile", "quest", "chat", "Discover"];
+    final labels = ["Profile", "Quest", "Chat", "Discover"];
     final width = MediaQuery.of(context).size.width - 72;
     return Stack(
       clipBehavior: Clip.none,
@@ -87,7 +87,7 @@ class NavBar extends StatelessWidget {
                     pageIndex == 3,
                     onTap: () => {
                       Get.showSnackbar(const GetSnackBar(
-                        message: "Comming Soon!",
+                        message: "Coming Soon!",
                         duration: Duration(seconds: 2),
                       ))
                     },
@@ -144,7 +144,12 @@ class NavBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton.large(
-            onPressed: () {},
+            onPressed: () {
+              if (pageIndex == 1) {
+                Get.offAll(() => const HomeScreen());
+              }
+            },
+            heroTag: "navBar",
             backgroundColor: const Color.fromARGB(255, 244, 215, 56),
             shape: const CircleBorder(
               side: BorderSide(
