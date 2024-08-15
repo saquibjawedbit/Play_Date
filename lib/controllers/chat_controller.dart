@@ -123,9 +123,19 @@ class ChatController extends GetxController {
         "isSeen": false,
         "lastMessage": (type == 'text')
             ? message.substring(0, min(message.length, 100))
-            : (type == 'image' ? "sent an image." : "sent a voicenote"),
+            : lastMessage(type),
       },
     );
+  }
+
+  String lastMessage(String type) {
+    if (type == 'image') {
+      return "Sent an Image.";
+    } else if (type == 'audio') {
+      return "Sent an Audio";
+    } else {
+      return "Replied to you message";
+    }
   }
 
   //SEND IMAGE

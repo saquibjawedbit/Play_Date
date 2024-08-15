@@ -13,6 +13,7 @@ import 'package:play_dates/Utlis/repo/db_manager.dart';
 import 'package:play_dates/controllers/user_controller.dart';
 import 'package:play_dates/firebase_options.dart';
 import 'dart:math';
+import 'package:flutter/services.dart';
 
 final dbClient = DbClient();
 final categoryRepo = DbManager(dbClient: dbClient);
@@ -20,7 +21,12 @@ final categoryRepo = DbManager(dbClient: dbClient);
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(MyApp());
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {

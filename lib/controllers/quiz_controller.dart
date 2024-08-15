@@ -40,8 +40,8 @@ class QuizController extends GetxController {
   final UserController controller = Get.find();
 
   Future<void> loadData() async {
-    categoryRepo.createUser("contest", dummyData[0].toMap(),
-        "${DateTime.now().year}y${DateTime.now().month}m${DateTime.now().day}");
+    // categoryRepo.createUser("contest", dummyData[0].toMap(),
+    //     "${DateTime.now().year}y${DateTime.now().month}m${DateTime.now().day}");
 
     DateTime currentTime = await NTP.now();
     isQuiz.value = false;
@@ -85,6 +85,11 @@ class QuizController extends GetxController {
         nextQuiz = currentTime.difference(startTime!).inSeconds;
       }
     }
+
+    // startTime = currentTime;
+    // endTime = currentTime.add(const Duration(minutes: 1));
+    // isQuiz.value = true;
+    // timeLeft.value = "Play Now";
   }
 
   void waitForPlayers() async {

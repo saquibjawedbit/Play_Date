@@ -35,55 +35,58 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
     showDialog(
       context: context,
       builder: (context) => CustomDialogBox(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            OutlinedText(
-              text: "Save your changes!",
-              fontSize: min(31, 31.sp),
-              textColor: const Color.fromARGB(255, 255, 208, 0),
-              borderColor: Colors.black,
-              offset: const Offset(2, 5),
-              height: 1,
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            const Text(
-              "You have unsaved changes.\nDo you want to continue?",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+        content: FittedBox(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutlinedText(
+                text: "Save your changes!",
+                fontSize: min(31, 31.sp),
+                textColor: const Color.fromARGB(255, 255, 208, 0),
+                borderColor: Colors.black,
+                offset: const Offset(2, 5),
                 height: 1,
               ),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: FittedBox(
-                child: Row(
-                  children: [
-                    FlatBtn(
-                      onTap: uploadImage,
-                      text: "YES",
-                    ),
-                    const SizedBox(
-                      width: 30,
-                    ),
-                    FlatBtn(
-                      onTap: () {
-                        Get.back();
-                      },
-                      text: "NO",
-                      color: Colors.white,
-                    ),
-                  ],
+              SizedBox(
+                height: min(10, 10.h),
+              ),
+              const Text(
+                "You have unsaved changes.\nDo you want to continue?",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  height: 1,
                 ),
               ),
-            ),
-          ],
+              SizedBox(
+                height: min(10, 10.h),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: FittedBox(
+                  child: Row(
+                    children: [
+                      FlatBtn(
+                        onTap: uploadImage,
+                        text: "YES",
+                      ),
+                      const SizedBox(
+                        width: 30,
+                      ),
+                      FlatBtn(
+                        onTap: () {
+                          Get.back();
+                        },
+                        text: "NO",
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         padding:
             const EdgeInsets.only(top: 40, left: 24, right: 24, bottom: 30),
@@ -118,15 +121,19 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const AppTitle(),
-                const SizedBox(
-                  height: 10,
+                SizedBox(
+                  height: min(10, 10.h),
                 ),
                 Text(
-                  "Wanna change you photoes?",
+                  "Wanna change your photoes?",
                   style: Theme.of(context).textTheme.displayLarge!.copyWith(
                         color: Colors.black,
                         letterSpacing: 2,
+                        height: 1,
                       ),
+                ),
+                SizedBox(
+                  height: min(10, 10.h),
                 ),
                 Text(
                   "Yes you can bbg, flaunt your way through.",
@@ -148,6 +155,8 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                             _pickImagesFromGallery(i);
                           },
                           child: Container(
+                            constraints: const BoxConstraints(
+                                maxWidth: 40, maxHeight: 40),
                             decoration: BoxDecoration(
                               color: bColor,
                               borderRadius: BorderRadius.circular(12),

@@ -443,12 +443,14 @@ class AppTitle extends StatelessWidget {
           ),
         ],
       ),
-      child: OutlinedText(
-        text: "playDates.",
-        textColor: const Color.fromARGB(255, 235, 240, 0),
-        fontSize: min(64, 64.sp),
-        borderColor: Colors.black,
-        offset: const Offset(2, 2),
+      child: FittedBox(
+        child: OutlinedText(
+          text: "playDates.",
+          textColor: const Color.fromARGB(255, 235, 240, 0),
+          fontSize: min(64, 64.sp),
+          borderColor: Colors.black,
+          offset: const Offset(2, 2),
+        ),
       ),
     );
   }

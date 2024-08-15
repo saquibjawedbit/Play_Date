@@ -214,6 +214,10 @@ class _ChatScreenState extends State<ChatScreen> {
           return const Text("Loading...");
         }
 
+        if (snapshot.data!.docs.isEmpty) {
+          return const Text("");
+        }
+
         _lastDocument = snapshot.data!.docs.lastOrNull;
         String id = snapshot.data!.docs.first.id;
         if (chatController.messageItems.isNotEmpty && id != latestId) {

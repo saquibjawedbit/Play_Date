@@ -127,16 +127,18 @@ class _ChatBubbleState extends State<ChatBubble> {
     String type = widget.data.reply!['type'] ?? "text";
     String message = widget.data.reply!['reply'] ?? "Unavailable";
     if (type == "text" || type == 'reply') {
-      return Text(
-        message,
-        maxLines: 4,
-        textAlign: TextAlign.right,
-        softWrap: true,
-        overflow: TextOverflow.clip,
-        style: TextStyle(
-          color: const Color.fromARGB(255, 107, 105, 105),
-          fontSize: min(16, 16.sp),
-          fontWeight: FontWeight.w500,
+      return Expanded(
+        child: Text(
+          message,
+          maxLines: 2,
+          textAlign: TextAlign.right,
+          softWrap: true,
+          overflow: TextOverflow.clip,
+          style: TextStyle(
+            color: const Color.fromARGB(255, 107, 105, 105),
+            fontSize: min(16, 16.sp),
+            fontWeight: FontWeight.w500,
+          ),
         ),
       );
     } else if (type == 'image') {
